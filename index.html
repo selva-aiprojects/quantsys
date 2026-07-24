@@ -92,8 +92,51 @@
     border-radius:100px;
   }
 
-  main{padding:28px 24px 0;display:grid;grid-template-columns:340px 1fr;gap:20px;}
+  main{padding:28px 24px 24px;display:grid;grid-template-columns:220px 1fr;gap:24px; max-width: 1400px; margin: 0 auto;}
   @media (max-width:860px){ main{grid-template-columns:1fr;} }
+
+  /* Sidebar Navigation */
+  .sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .sidebar-btn {
+    background: transparent;
+    border: 1px solid transparent;
+    color: var(--muted);
+    font-family: 'Inter', sans-serif;
+    font-weight: 500;
+    font-size: 14px;
+    padding: 12px 16px;
+    cursor: pointer;
+    border-radius: 8px;
+    text-align: left;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .sidebar-btn:hover {
+    background: var(--bg-hover);
+    color: var(--fg);
+  }
+  .sidebar-btn.active {
+    background: var(--panel-2);
+    border-color: var(--border);
+    color: var(--teal);
+  }
+  .main-tab-content {
+    display: none;
+    animation: fadeIn 0.2s ease-in-out;
+  }
+  .main-tab-content.active {
+    display: block;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(5px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
 
   .panel{
     background:var(--panel);
@@ -262,6 +305,43 @@
   }
   .section-title::after{content:"";flex:1;height:1px;background:var(--border);}
 
+  /* AI Tabs */
+  .ai-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 8px;
+    overflow-x: auto;
+  }
+  .ai-tab-btn {
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-family: 'Inter', sans-serif;
+    font-weight: 500;
+    font-size: 14px;
+    padding: 8px 16px;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+  }
+  .ai-tab-btn:hover {
+    background: var(--bg-hover);
+    color: var(--fg);
+  }
+  .ai-tab-btn.active {
+    background: var(--bg-hover);
+    color: var(--teal);
+  }
+  .ai-tab-content {
+    display: none;
+  }
+  .ai-tab-content.active {
+    display: block;
+  }
+
   table{width:100%;border-collapse:collapse;}
   th{
     text-align:left;
@@ -390,9 +470,18 @@
   </header>
 
   <main>
-    <!-- INPUT PANEL -->
-    <div class="panel">
-      <h2>Build your model</h2>
+    <!-- SIDEBAR NAVIGATION -->
+    <aside class="sidebar-nav">
+      <button class="sidebar-btn active" id="navModelBtn" onclick="switchMainTab('tabModel', this)">⚙️ Build your Model</button>
+      <button class="sidebar-btn" id="navPortfolioBtn" onclick="switchMainTab('tabPortfolio', this)">📊 Proposed Portfolio</button>
+      <button class="sidebar-btn" id="navInsightsBtn" onclick="switchMainTab('tabInsights', this)">✨ AI Insights</button>
+      <button class="sidebar-btn" id="navSavedBtn" onclick="switchMainTab('tabSaved', this)">💾 Saved Portfolios</button>
+    </aside>
+
+    <div class="content-area">
+      <!-- INPUT PANEL -->
+      <div class="panel main-tab-content active" id="tabModel">
+        <h2>Build your model</h2>
 
       <label>Investment amount</label>
       <div class="amt-input">
@@ -441,35 +530,44 @@
     </div>
 
     <!-- RESULTS -->
-    <div class="panel" id="resultsPanel">
+    <div class="panel main-tab-content" id="tabPortfolio">
       <h2>Proposed portfolio</h2>
       <button class="build-btn" id="aiBtn" style="background:var(--teal); margin-top:0; margin-bottom: 20px; display:none;">✨ AI Predict & Rebalance</button>
       <div class="empty-state" id="emptyState">Set your amount, risk profile and sectors, then build the portfolio.</div>
       <div id="resultsBody" style="display:none;"></div>
-      
-      <!-- AI Results Panel -->
-      <div id="aiResults" style="display:none; margin-top: 30px; border-top: 1px dashed var(--border); padding-top: 20px;">
-         <h2 style="color: var(--teal);">✨ AI Insights</h2>
+    </div>
+    
+    <!-- AI RESULTS PANEL -->
+    <div class="panel main-tab-content" id="tabInsights">
+       <h2 style="color: var(--teal);">✨ AI Insights</h2>
          <div id="aiLoading" style="display:none; font-family:'IBM Plex Mono'; font-size: 13px; color: var(--teal); padding: 14px; background: rgba(47,182,140,0.08); border: 1px solid var(--teal); border-radius: 8px; margin-bottom: 16px;">
             <span style="display:inline-block; animation: spin 1.5s linear infinite; margin-right: 8px;">⏳</span>
             <span id="aiLoadingText">Fetching live market prices and analyzing predictions...</span>
          </div>
          <div id="aiContent" style="display:none;">
-            <div class="section-title">Market & Sector Analysis</div>
-            <div class="playbook" id="aiMarketText"></div>
+            <div class="ai-tabs">
+              <button class="ai-tab-btn active" onclick="switchAITab('marketTab', this)">Market & Sector Analysis</button>
+              <button class="ai-tab-btn" onclick="switchAITab('corporateTab', this)">Corporate Guidance</button>
+              <button class="ai-tab-btn" onclick="switchAITab('predictionTab', this)">AI Predictions & Strategy</button>
+            </div>
             
-            <div class="section-title">Corporate Guidance Summary</div>
-            <div class="playbook" id="aiCorporateText"></div>
+            <div id="marketTab" class="ai-tab-content active">
+               <div class="playbook" id="aiMarketText"></div>
+            </div>
             
-            <div class="section-title">AI Predictions & Strategy</div>
-            <div class="playbook" id="aiPredictionText"></div>
+            <div id="corporateTab" class="ai-tab-content">
+               <div class="playbook" id="aiCorporateText"></div>
+            </div>
+            
+            <div id="predictionTab" class="ai-tab-content">
+               <div class="playbook" id="aiPredictionText"></div>
+            </div>
          </div>
-      </div>
+       </div>
     </div>
-  </main>
 
-  <div style="padding:0 24px;">
-    <div class="panel" id="savePanel">
+    <!-- SAVED PORTFOLIOS -->
+    <div class="panel main-tab-content" id="tabSaved">
       <h2>Saved portfolios <span style="text-transform:none;letter-spacing:normal;color:var(--muted-2);font-size:11px;">— stored in this browser only</span></h2>
 
       <div class="save-row">
@@ -491,14 +589,13 @@
       <div id="compareOutput"></div>
       <div id="historyOutput"></div>
     </div>
-  </div>
 
-  <div style="padding:0 24px;">
-    <div class="disclaimer">
+    <div class="disclaimer" style="margin-top:24px;">
       <b>Disclaimer:</b> QuantSys is an educational allocation model, not investment advice or a trade recommendation. Company names are illustrative examples of well-known NSE-listed businesses in each sector, not a solicitation to buy or sell. Share prices shown are placeholders — enter live LTP (last traded price) yourself before using any figures. Quantities and rupee splits are indicative only and don't account for lot sizes, brokerage, STT, or taxes. Please consult a SEBI-registered investment adviser and verify all data on a live terminal before placing any trade.
     </div>
-  </div>
 
+    </div> <!-- end content-area -->
+  </main>
 </div>
 
 <script>
@@ -694,6 +791,9 @@ function buildPortfolio(){
   document.getElementById('resultsBody').style.display = 'block';
   document.getElementById('aiBtn').style.display = 'block';
 
+  // Auto-switch to portfolio tab
+  switchMainTab('tabPortfolio', document.getElementById('navPortfolioBtn'));
+
   // set initial quantities and stop-loss prices
   resultsBody.querySelectorAll('.price-input').forEach(updateQtyForRow);
 
@@ -724,6 +824,25 @@ document.getElementById('resultsBody').addEventListener('input', function(e){
   }
 });
 
+// AI Tab Switcher
+function switchAITab(tabId, btn) {
+    document.querySelectorAll('.ai-tab-content').forEach(c => c.classList.remove('active'));
+    document.querySelectorAll('.ai-tab-btn').forEach(b => b.classList.remove('active'));
+    
+    document.getElementById(tabId).classList.add('active');
+    btn.classList.add('active');
+}
+
+// Main Sidebar Tab Switcher
+function switchMainTab(tabId, btn) {
+    document.querySelectorAll('.main-tab-content').forEach(c => c.classList.remove('active'));
+    document.querySelectorAll('.sidebar-btn').forEach(b => b.classList.remove('active'));
+    
+    document.getElementById(tabId).classList.add('active');
+    btn.classList.add('active');
+}
+
+// Build button handler
 document.getElementById('buildBtn').addEventListener('click', buildPortfolio);
 
 document.getElementById('stopLossPct').addEventListener('input', function(){
@@ -988,7 +1107,9 @@ document.getElementById('aiBtn').addEventListener('click', async function(){
   const aiContent = document.getElementById('aiContent');
   const aiLoading = document.getElementById('aiLoading');
   
-  aiResults.style.display = 'block';
+  // Auto-switch to AI Insights tab
+  switchMainTab('tabInsights', document.getElementById('navInsightsBtn'));
+  
   aiLoading.style.display = 'block';
   aiContent.style.display = 'none';
   document.getElementById('aiLoadingText').innerHTML = 'Fetching live market prices...';
