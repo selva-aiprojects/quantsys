@@ -450,9 +450,71 @@
   .compare-line{display:flex;justify-content:space-between;font-size:12.5px;padding:6px 0;border-top:1px solid var(--border);}
   .compare-line:first-of-type{border-top:none;}
   .compare-line b{font-family:'IBM Plex Mono';font-weight:500;}
-</style>
+
+  /* Auth Overlay */
+  .auth-overlay {
+    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+    background: rgba(10, 10, 12, 0.7); z-index: 9999; display: flex;
+    align-items: center; justify-content: center;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+  .auth-box {
+    background: var(--surface); padding: 40px; border-radius: 12px;
+    border: 1px solid var(--border); width: 100%; max-width: 400px;
+    text-align: center;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+  }
+  .auth-box h2 { font-family: 'Space Grotesk', sans-serif; margin-bottom: 24px; font-size: 24px; }
+  .auth-box input {
+    width: 100%; padding: 12px; margin-bottom: 16px;
+    background: var(--bg); border: 1px solid var(--border);
+    color: var(--fg); border-radius: 6px; box-sizing: border-box;
+  }
+  .auth-box button {
+    width: 100%; padding: 12px; background: var(--teal);
+    color: #fff; border: none; border-radius: 6px;
+    font-weight: bold; cursor: pointer; margin-bottom: 12px;
+  }
+  .auth-box button:hover { background: #199480; }
+  .auth-box button.outline {
+    background: transparent; border: 1px solid var(--teal); color: var(--teal);
+  }
+  .auth-box button.outline:hover { background: rgba(32, 178, 170, 0.1); }
+  .auth-error { color: var(--red); font-size: 14px; margin-bottom: 16px; display: none; }
+
+  </style>
 </head>
 <body>
+  <!-- AUTH OVERLAY -->
+  <div id="authOverlay" class="auth-overlay">
+    <div class="auth-box">
+      <img src="/static/logo.png" alt="QuantSys Logo" style="width:72px; height:72px; border-radius:16px; object-fit:cover; box-shadow: 0 4px 15px rgba(0,0,0,0.6); margin-bottom: 16px;">
+      <h2>Welcome to Nivesh</h2>
+      <div class="tagline" style="margin-bottom:24px;">Sign in to save and refine your portfolios</div>
+      <div id="authError" class="auth-error"></div>
+      <button id="googleSignInBtn" style="display:flex; align-items:center; justify-content:center; gap:12px; background:white; color:#333; border:none; padding:12px 24px; border-radius:8px; font-weight:600; cursor:pointer; width:100%; max-width:300px; margin:0 auto; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+        <svg width="24" height="24" viewBox="0 0 48 48">
+          <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+          <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+          <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+          <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+        </svg>
+        Sign in with Google
+      </button>
+
+      <div style="display:flex; align-items:center; gap:12px; margin: 20px 0; color:var(--muted); font-size:12px;">
+        <div style="flex:1; height:1px; background:var(--border);"></div>
+        <span>OR</span>
+        <div style="flex:1; height:1px; background:var(--border);"></div>
+      </div>
+
+      <div style="display:flex; flex-direction:column; gap:10px; width:100%; max-width:300px; margin:0 auto;">
+        <input type="email" id="quickEmailInput" placeholder="Enter your email address" style="padding:10px 14px; border-radius:8px; border:1px solid var(--border); background:rgba(255,255,255,0.05); color:white; font-size:14px; width:100%; box-sizing:border-box;">
+        <button id="quickLoginBtn" style="padding:10px; border-radius:8px; border:none; background:var(--accent); color:black; font-weight:600; cursor:pointer; width:100%;">Continue with Email</button>
+      </div>
+    </div>
+  </div>
 <div class="app">
 
   <div class="ticker-wrap">
@@ -467,16 +529,23 @@
         <div class="tagline">Self-Refinement Portal — allocation &amp; risk-rule modelling for the Indian equity market</div>
       </div>
     </div>
+    <div id="welcomeUser" class="badge" style="margin-left: auto; margin-right: 16px; background: rgba(56, 189, 248, 0.1); color: #38bdf8; display: none; font-size: 14px;"></div>
+    
+    <button id="logoutBtn" style="background: transparent; border: 1px solid var(--border); color: var(--red); padding: 6px 12px; border-radius: 6px; cursor: pointer; display: none; align-items: center; gap: 6px; font-size: 13px; margin-right: 16px;">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+      Logout
+    </button>
+    
     <div class="badge">EDUCATIONAL MODEL · NOT ADVICE</div>
   </header>
 
   <main>
     <!-- SIDEBAR NAVIGATION -->
     <aside class="sidebar-nav">
+      <button class="sidebar-btn" id="navSavedBtn" onclick="switchMainTab('tabSaved', this)">💾 Saved Portfolios</button>
       <button class="sidebar-btn active" id="navModelBtn" onclick="switchMainTab('tabModel', this)">⚙️ Build your Model</button>
       <button class="sidebar-btn" id="navPortfolioBtn" onclick="switchMainTab('tabPortfolio', this)">📊 Proposed Portfolio</button>
       <button class="sidebar-btn" id="navInsightsBtn" onclick="switchMainTab('tabInsights', this)">✨ AI Insights</button>
-      <button class="sidebar-btn" id="navSavedBtn" onclick="switchMainTab('tabSaved', this)">💾 Saved Portfolios</button>
     </aside>
 
     <div class="content-area">
@@ -599,7 +668,10 @@
   </main>
 </div>
 
-<script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { getAuth, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
 try{
 
 const SECTORS = {
@@ -863,13 +935,78 @@ function escapeHtml(str){
   });
 }
 
+let appPortfolios = [];
+
 function loadPortfolios(){
-  try{ return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); }
-  catch(e){ return []; }
+  return appPortfolios;
 }
-function savePortfolios(list){
-  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(list)); }
-  catch(e){ alert('Could not save — your browser storage may be full or disabled.'); }
+
+function savePortfolios(list, specificPortfolio = null){
+  appPortfolios = list;
+  if(specificPortfolio) {
+      const token = localStorage.getItem('nivesh_token');
+      if(!token) return showAuth();
+      fetch('/api/portfolios', {
+          method: 'POST',
+          headers: {'Content-Type':'application/json', 'Authorization': `Bearer ${token}`},
+          body: JSON.stringify(specificPortfolio)
+      }).catch(e => console.error("Failed to save to cloud", e));
+  }
+}
+
+function showAuth() {
+    document.getElementById('authOverlay').style.display = 'flex';
+}
+function hideAuth() {
+    document.getElementById('authOverlay').style.display = 'none';
+}
+
+async function fetchPortfoliosFromCloud() {
+    const token = localStorage.getItem('nivesh_token');
+    if(!token) return showAuth();
+    
+    try {
+        const payloadStr = atob(token.split('.')[1]);
+        const payload = JSON.parse(payloadStr);
+        if(payload && payload.sub) {
+            const el = document.getElementById('welcomeUser');
+            if(el) {
+                el.textContent = 'Welcome, ' + payload.sub;
+                el.style.display = 'block';
+            }
+            const lg = document.getElementById('logoutBtn');
+            if(lg) lg.style.display = 'flex';
+        }
+    } catch(e) {}
+    
+    try {
+        const resp = await fetch('/api/portfolios', { headers: { 'Authorization': `Bearer ${token}` } });
+        if(resp.status === 401) {
+            localStorage.removeItem('nivesh_token');
+            return showAuth();
+        }
+        appPortfolios = await resp.json();
+        
+        hideAuth();
+        renderSavedList();
+        updateActiveLabel();
+        
+        // Initial Tab Routing
+        if(appPortfolios.length > 0) {
+            appPortfolios.sort((a,b) => {
+                const timeA = new Date(a.history[a.history.length-1].at).getTime();
+                const timeB = new Date(b.history[b.history.length-1].at).getTime();
+                return timeB - timeA;
+            });
+            loadPortfolio(appPortfolios[0].id);
+        } else {
+            switchMainTab('tabModel', document.getElementById('navModelBtn'));
+        }
+        
+    } catch(e) {
+        console.error("Failed to fetch portfolios", e);
+        showAuth();
+    }
 }
 
 function snapshotStocksFromDOM(){
@@ -1052,8 +1189,9 @@ document.getElementById('saveNewBtn').addEventListener('click', function(){
   const name = nameInput.value.trim() || ('Portfolio ' + (loadPortfolios().length+1));
   const list = loadPortfolios();
   const id = 'p_' + Date.now() + '_' + Math.floor(Math.random()*1000);
-  list.push({ id:id, name:name, createdAt:snap.at, history:[snap] });
-  savePortfolios(list);
+  const newP = { id:id, name:name, createdAt:snap.at, history:[snap] };
+  list.push(newP);
+  savePortfolios(list, newP);
   activePortfolioId = id;
   nameInput.value = name;
   renderSavedList();
@@ -1121,7 +1259,7 @@ document.getElementById('aiBtn').addEventListener('click', async function(){
       if(stocks.length > 0) {
           const tickers = stocks.map(s => s.ticker + '.NS').join(',');
           try {
-              const marketResp = await fetch(`/api/market-data?tickers=${tickers}`);
+              const marketResp = await fetch(`/api/market-data?tickers=${tickers}`, { headers: { 'Authorization': `Bearer ${localStorage.getItem('nivesh_token')}` } });
               const marketData = await marketResp.json();
               if(marketData.data) {
                   stocks.forEach(s => {
@@ -1151,7 +1289,7 @@ document.getElementById('aiBtn').addEventListener('click', async function(){
       
       const aiResponse = await fetch('/api/ai-predict', {
           method: 'POST',
-          headers: {'Content-Type': 'application/json'},
+          headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('nivesh_token')}`},
           body: JSON.stringify(payload)
       });
       
@@ -1171,8 +1309,88 @@ document.getElementById('aiBtn').addEventListener('click', async function(){
   }
 });
 
+document.getElementById('logoutBtn').addEventListener('click', function(){
+localStorage.removeItem('nivesh_token');
+appPortfolios = [];
+activePortfolioId = null;
+const welEl = document.getElementById('welcomeUser');
+if(welEl) welEl.style.display = 'none';
+const lgBtn = document.getElementById('logoutBtn');
+if(lgBtn) lgBtn.style.display = 'none';
 renderSavedList();
 updateActiveLabel();
+showAuth();
+});
+
+// REMOVE OLD BOOT LOGIC
+// renderSavedList();
+// updateActiveLabel();
+// const portfolios = loadPortfolios();
+// if(portfolios.length > 0) ... (removed to replace with fetchPortfoliosFromCloud)
+
+// BOOT - Removed from here, moved to after setupFirebase
+
+// Firebase Auth
+
+let auth;
+let provider;
+
+async function setupFirebase() {
+    try {
+        const resp = await fetch('/api/firebase-config');
+        const config = await resp.json();
+        const app = initializeApp(config);
+        auth = getAuth(app);
+        provider = new GoogleAuthProvider();
+        provider.setCustomParameters({ prompt: 'select_account' });
+    } catch(e) {
+        console.error("Failed to load Firebase config", e);
+    }
+}
+await setupFirebase();
+fetchPortfoliosFromCloud();
+
+const googleBtn = document.getElementById('googleSignInBtn');
+if(googleBtn) {
+    googleBtn.addEventListener('click', async () => {
+        if(!auth) return;
+        const errEl = document.getElementById('authError');
+        if(errEl) errEl.style.display = 'none';
+        
+        try {
+            const result = await signInWithPopup(auth, provider);
+            if(result && result.user) {
+                const token = await result.user.getIdToken();
+                localStorage.setItem('nivesh_token', token);
+                fetchPortfoliosFromCloud();
+            }
+        } catch (error) {
+            console.error("Popup Error:", error);
+            if(errEl) {
+                errEl.textContent = "Google Sign-In Error: " + error.message;
+                errEl.style.display = 'block';
+            }
+        }
+    });
+}
+
+const quickBtn = document.getElementById('quickLoginBtn');
+if(quickBtn) {
+    quickBtn.addEventListener('click', () => {
+        const emailInput = document.getElementById('quickEmailInput');
+        const email = emailInput ? emailInput.value.trim() : '';
+        if(!email) {
+            const errEl = document.getElementById('authError');
+            if(errEl) {
+                errEl.textContent = "Please enter an email address.";
+                errEl.style.display = 'block';
+            }
+            return;
+        }
+        localStorage.setItem('nivesh_token', 'user:' + email);
+        fetchPortfoliosFromCloud();
+    });
+}
 
 }catch(err){
   const panel = document.getElementById('resultsPanel');
@@ -1182,6 +1400,9 @@ updateActiveLabel();
   console.error(err);
 }
 </script>
+
+
+
 
 </body>
 </html>
