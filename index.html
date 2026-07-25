@@ -1,1408 +1,1844 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>QuantSys - AI Portfolio Rebalancer</title>
-<link rel="icon" type="image/png" href="/static/logo.png">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<style>
-  :root{
-    --bg-deep:#0A1512;
-    --panel:#12201A;
-    --panel-2:#0D1815;
-    --border:#20342A;
-    --amber:#D9A441;
-    --amber-dim:#8A6A2E;
-    --teal:#3FCB8E;
-    --red:#FF6B5B;
-    --text:#E9F2EC;
-    --muted:#8FA79A;
-    --muted-2:#5C7268;
-    --ink:#0A1512;
-  }
-  *{box-sizing:border-box;}
-  body{
-    margin:0;
-    background:var(--bg-deep);
-    color:var(--text);
-    font-family:'Inter',sans-serif;
-    -webkit-font-smoothing:antialiased;
-  }
-  .app{max-width:1180px;margin:0 auto;padding:0 0 60px;}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QuantSys - AI Portfolio Rebalancer</title>
+  <link rel="icon" type="image/png" href="/static/logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap"
+    rel="stylesheet">
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <style>
+    :root {
+      --bg-deep: #0A1512;
+      --panel: #12201A;
+      --panel-2: #0D1815;
+      --border: #20342A;
+      --amber: #D9A441;
+      --amber-dim: #8A6A2E;
+      --teal: #3FCB8E;
+      --red: #FF6B5B;
+      --text: #E9F2EC;
+      --muted: #8FA79A;
+      --muted-2: #5C7268;
+      --ink: #0A1512;
+    }
 
-  /* Ticker strip */
-  .ticker-wrap{
-    background:var(--panel-2);
-    border-bottom:1px solid var(--border);
-    overflow:hidden;
-    white-space:nowrap;
-    padding:8px 0;
-  }
-  .ticker{
-    display:inline-block;
-    padding-left:100%;
-    animation:scroll 28s linear infinite;
-    font-family:'IBM Plex Mono',monospace;
-    font-size:12px;
-    letter-spacing:0.04em;
-    color:var(--muted);
-  }
-  .ticker span{margin-right:48px;}
-  .ticker b{color:var(--amber);font-weight:600;}
-  @keyframes scroll{
-    0%{transform:translateX(0);}
-    100%{transform:translateX(-100%);}
-  }
-  @keyframes spin{
-    0%{transform:rotate(0deg);}
-    100%{transform:rotate(360deg);}
-  }
+    * {
+      box-sizing: border-box;
+    }
 
-  header{
-    padding:36px 24px 20px;
-    display:flex;
-    justify-content:space-between;
-    align-items:flex-end;
-    flex-wrap:wrap;
-    gap:12px;
-    border-bottom:1px solid var(--border);
-  }
-  .brand{display:flex;align-items:center;gap:12px;}
-  .brand-mark{
-    width:38px;height:38px;border-radius:10px;
-    background:conic-gradient(from 200deg, var(--amber), var(--teal), var(--amber));
-    display:flex;align-items:center;justify-content:center;
-    font-family:'Space Grotesk';font-weight:700;color:#FFFFFF;font-size:16px;text-shadow:0 1px 2px rgba(0,0,0,0.25);
-  }
-  h1{
-    font-family:'Space Grotesk',sans-serif;
-    font-size:22px;
-    font-weight:700;
-    margin:0;
-    letter-spacing:-0.01em;
-  }
-  .tagline{color:var(--muted);font-size:13px;margin-top:2px;}
-  .badge{
-    font-family:'IBM Plex Mono',monospace;
-    font-size:11px;
-    color:var(--muted);
-    border:1px solid var(--border);
-    padding:5px 10px;
-    border-radius:100px;
-  }
+    body {
+      margin: 0;
+      background: var(--bg-deep);
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
 
-  main{padding:28px 24px 24px;display:grid;grid-template-columns:220px 1fr;gap:24px; max-width: 1400px; margin: 0 auto;}
-  @media (max-width:860px){ main{grid-template-columns:1fr;} }
+    .app {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 0 0 60px;
+    }
 
-  /* Sidebar Navigation */
-  .sidebar-nav {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
-  .sidebar-btn {
-    background: transparent;
-    border: 1px solid transparent;
-    color: var(--muted);
-    font-family: 'Inter', sans-serif;
-    font-weight: 500;
-    font-size: 14px;
-    padding: 12px 16px;
-    cursor: pointer;
-    border-radius: 8px;
-    text-align: left;
-    transition: all 0.2s ease;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-  .sidebar-btn:hover {
-    background: var(--bg-hover);
-    color: var(--fg);
-  }
-  .sidebar-btn.active {
-    background: var(--panel-2);
-    border-color: var(--border);
-    color: var(--teal);
-  }
-  .main-tab-content {
-    display: none;
-    animation: fadeIn 0.2s ease-in-out;
-  }
-  .main-tab-content.active {
-    display: block;
-  }
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(5px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
+    /* Ticker strip */
+    .ticker-wrap {
+      background: var(--panel-2);
+      border-bottom: 1px solid var(--border);
+      overflow: hidden;
+      white-space: nowrap;
+      padding: 8px 0;
+    }
 
-  .panel{
-    background:var(--panel);
-    border:1px solid var(--border);
-    border-radius:14px;
-    padding:22px;
-    box-shadow:0 2px 12px rgba(0,0,0,0.35);
-  }
-  .panel h2{
-    font-family:'Space Grotesk';
-    font-size:14px;
-    text-transform:uppercase;
-    letter-spacing:0.08em;
-    color:var(--muted);
-    margin:0 0 18px;
-  }
+    .ticker {
+      display: inline-block;
+      padding-left: 100%;
+      animation: scroll 28s linear infinite;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 12px;
+      letter-spacing: 0.04em;
+      color: var(--muted);
+    }
 
-  label{
-    display:block;
-    font-size:12px;
-    color:var(--muted);
-    margin-bottom:6px;
-    margin-top:18px;
-  }
-  label:first-of-type{margin-top:0;}
-  .amt-input{
-    position:relative;
-  }
-  .amt-input span{
-    position:absolute;left:14px;top:50%;transform:translateY(-50%);
-    color:var(--amber);font-family:'IBM Plex Mono';font-size:16px;
-  }
-  input[type=number]{
-    width:100%;
-    background:var(--panel-2);
-    border:1px solid var(--border);
-    border-radius:8px;
-    color:var(--text);
-    font-family:'IBM Plex Mono',monospace;
-    font-size:16px;
-    padding:12px 12px 12px 30px;
-    outline:none;
-  }
-  input[type=number]:focus{border-color:var(--amber);}
+    .ticker span {
+      margin-right: 48px;
+    }
 
-  .risk-row{display:flex;gap:8px;margin-top:8px;}
-  .risk-btn{
-    flex:1;
-    background:var(--panel-2);
-    border:1px solid var(--border);
-    color:var(--muted);
-    border-radius:8px;
-    padding:9px 4px;
-    font-size:12px;
-    font-family:'Inter';
-    cursor:pointer;
-    text-align:center;
-    transition:all .15s;
-  }
-  .risk-btn.active{
-    border-color:var(--amber);
-    color:var(--amber);
-    background:rgba(227,165,66,0.08);
-  }
+    .ticker b {
+      color: var(--amber);
+      font-weight: 600;
+    }
 
-  .sector-grid{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;}
-  .chip{
-    border:1px solid var(--border);
-    background:var(--panel-2);
-    color:var(--muted);
-    font-size:12px;
-    padding:8px 12px;
-    border-radius:100px;
-    cursor:pointer;
-    user-select:none;
-    transition:all .15s;
-  }
-  .chip.active{
-    border-color:var(--teal);
-    color:var(--teal);
-    background:rgba(47,182,140,0.08);
-  }
+    @keyframes scroll {
+      0% {
+        transform: translateX(0);
+      }
 
-  .rule-row{display:flex;gap:12px;margin-top:0;}
-  .rule-row > div{flex:1;}
-  .small-input{margin-top:0;}
-  .small-input input{padding-right:34px;}
-  .unit-suffix{
-    position:absolute;right:12px;top:50%;transform:translateY(-50%);
-    color:var(--muted);font-family:'IBM Plex Mono';font-size:12px;
-  }
-  select{
-    width:100%;
-    background:var(--panel-2);
-    border:1px solid var(--border);
-    border-radius:8px;
-    color:var(--text);
-    font-family:'Inter';
-    font-size:13px;
-    padding:11px 12px;
-    outline:none;
-  }
-  select:focus{border-color:var(--amber);}
+      100% {
+        transform: translateX(-100%);
+      }
+    }
 
-  .playbook{
-    background:var(--panel-2);
-    border:1px solid var(--border);
-    border-radius:10px;
-    padding:16px 18px;
-    font-size:12.5px;
-    color:var(--muted);
-    line-height:1.7;
-  }
-  .playbook b{color:var(--text);}
-  .stop-cell{font-family:'IBM Plex Mono';color:var(--red);font-size:12px;}
-  .entry-cell{font-family:'IBM Plex Mono';color:var(--muted);font-size:12px;}
-  .rebalance-table td{font-size:12px;}
-  .drift-ok{color:var(--teal);font-family:'IBM Plex Mono';font-size:11px;}
+    @keyframes spin {
+      0% {
+        transform: rotate(0deg);
+      }
 
-  .build-btn{
-    width:100%;
-    margin-top:24px;
-    background:var(--amber);
-    color:#1A1305;
-    border:none;
-    border-radius:8px;
-    padding:13px;
-    font-family:'Space Grotesk';
-    font-weight:700;
-    font-size:14px;
-    cursor:pointer;
-    letter-spacing:0.01em;
-  }
-  .build-btn:hover{background:#eeb85f;}
+      100% {
+        transform: rotate(360deg);
+      }
+    }
 
-  .hint{font-size:11px;color:var(--muted-2);margin-top:14px;line-height:1.5;}
+    header {
+      padding: 36px 24px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      flex-wrap: wrap;
+      gap: 12px;
+      border-bottom: 1px solid var(--border);
+    }
 
-  /* RESULTS */
-  .results-top{display:grid;grid-template-columns:220px 1fr;gap:20px;}
-  @media (max-width:640px){ .results-top{grid-template-columns:1fr;} }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
 
-  .gauge-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;}
-  .gauge-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-top:6px;}
-  .gauge-figs{display:flex;gap:16px;margin-top:10px;}
-  .gauge-fig{text-align:center;}
-  .gauge-fig b{display:block;font-family:'IBM Plex Mono';font-size:14px;}
-  .gauge-fig span{font-size:10px;color:var(--muted-2);}
+    .brand-mark {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      background: conic-gradient(from 200deg, var(--amber), var(--teal), var(--amber));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Space Grotesk';
+      font-weight: 700;
+      color: #FFFFFF;
+      font-size: 16px;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+    }
 
-  .split-bars{display:flex;flex-direction:column;justify-content:center;gap:14px;}
-  .split-row{}
-  .split-row .row-top{display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px;}
-  .split-row .row-top b{font-family:'IBM Plex Mono';font-weight:500;}
-  .bar-track{height:8px;background:var(--panel-2);border-radius:100px;overflow:hidden;}
-  .bar-fill{height:100%;border-radius:100px;transition:width .5s ease;}
+    h1 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 22px;
+      font-weight: 700;
+      margin: 0;
+      letter-spacing: -0.01em;
+    }
 
-  .section-title{
-    font-family:'Space Grotesk';
-    font-size:13px;
-    text-transform:uppercase;
-    letter-spacing:0.08em;
-    color:var(--muted);
-    margin:28px 0 12px;
-    display:flex;
-    align-items:center;
-    gap:8px;
-  }
-  .section-title::after{content:"";flex:1;height:1px;background:var(--border);}
+    .tagline {
+      color: var(--muted);
+      font-size: 13px;
+      margin-top: 2px;
+    }
 
-  /* AI Tabs */
-  .ai-tabs {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 16px;
-    border-bottom: 1px solid var(--border);
-    padding-bottom: 8px;
-    overflow-x: auto;
-  }
-  .ai-tab-btn {
-    background: none;
-    border: none;
-    color: var(--muted);
-    font-family: 'Inter', sans-serif;
-    font-weight: 500;
-    font-size: 14px;
-    padding: 8px 16px;
-    cursor: pointer;
-    border-radius: 6px;
-    transition: all 0.2s ease;
-    white-space: nowrap;
-  }
-  .ai-tab-btn:hover {
-    background: var(--bg-hover);
-    color: var(--fg);
-  }
-  .ai-tab-btn.active {
-    background: var(--bg-hover);
-    color: var(--teal);
-  }
-  .ai-tab-content {
-    display: none;
-  }
-  .ai-tab-content.active {
-    display: block;
-  }
+    .badge {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      color: var(--muted);
+      border: 1px solid var(--border);
+      padding: 5px 10px;
+      border-radius: 100px;
+    }
 
-  table{width:100%;border-collapse:collapse;}
-  th{
-    text-align:left;
-    font-size:10px;
-    text-transform:uppercase;
-    letter-spacing:0.06em;
-    color:var(--muted-2);
-    padding:0 10px 8px;
-    font-weight:500;
-  }
-  td{
-    padding:10px;
-    border-top:1px solid var(--border);
-    font-size:13px;
-    vertical-align:middle;
-  }
-  .ticker-cell{font-family:'IBM Plex Mono';color:var(--amber);font-size:12px;}
-  .name-cell{color:var(--muted);font-size:11px;}
-  .price-input{
-    width:90px;
-    background:var(--panel-2);
-    border:1px solid var(--border);
-    border-radius:6px;
-    color:var(--text);
-    font-family:'IBM Plex Mono';
-    font-size:12px;
-    padding:6px 8px;
-  }
-  .qty-cell{font-family:'IBM Plex Mono';color:var(--teal);}
-  .instrument-row td{color:var(--muted);}
-  .instrument-row .ticker-cell{color:var(--muted);}
+    /* Auth widget */
+    .auth-widget {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
 
-  .disclaimer{
-    margin-top:32px;
-    border:1px dashed var(--border);
-    border-radius:10px;
-    padding:16px 18px;
-    font-size:11.5px;
-    color:var(--muted-2);
-    line-height:1.6;
-  }
-  .disclaimer b{color:var(--muted);}
+    .auth-user {
+      display: none;
+      align-items: center;
+      gap: 10px;
+      border: 1px solid var(--border);
+      background: var(--panel);
+      padding: 6px 12px 6px 6px;
+      border-radius: 100px;
+    }
 
-  .empty-state{
-    color:var(--muted-2);
-    font-size:13px;
-    padding:60px 20px;
-    text-align:center;
-  }
+    .auth-user img {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: block;
+      object-fit: cover;
+    }
 
-  .save-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
-  .save-row input[type=text]{
-    flex:1;min-width:220px;
-    background:var(--panel-2);
-    border:1px solid var(--border);
-    border-radius:8px;
-    color:var(--text);
-    font-family:'Inter';
-    font-size:13px;
-    padding:10px 12px;
-    outline:none;
-  }
-  .save-row input[type=text]:focus{border-color:var(--amber);}
-  .mini-btn{
-    background:var(--amber);
-    color:#1A1305;
-    border:none;
-    border-radius:8px;
-    padding:10px 16px;
-    font-family:'Space Grotesk';
-    font-weight:700;
-    font-size:12.5px;
-    cursor:pointer;
-    white-space:nowrap;
-  }
-  .mini-btn:hover{background:#eeb85f;}
-  .mini-btn-outline{
-    background:transparent;
-    border:1px solid var(--teal);
-    color:var(--teal);
-  }
-  .mini-btn-outline:hover{background:rgba(47,182,140,0.08);}
-  .mini-btn-ghost{
-    background:transparent;
-    border:1px solid var(--border);
-    color:var(--muted);
-    padding:6px 10px;
-    font-size:11px;
-    border-radius:6px;
-    cursor:pointer;
-    font-family:'Inter';
-    margin-right:4px;
-  }
-  .mini-btn-ghost:hover{border-color:var(--muted);color:var(--text);}
-  #savedListWrap{margin-top:20px;}
-  #savedTable td{font-size:12.5px;}
-  #savedTable .ticker-cell{font-size:12px;}
-  .delta-up{color:var(--teal);font-family:'IBM Plex Mono';font-size:12px;}
-  .delta-down{color:var(--red);font-family:'IBM Plex Mono';font-size:12px;}
-  .delta-flat{color:var(--muted);font-family:'IBM Plex Mono';font-size:12px;}
-  .compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px;}
-  @media (max-width:640px){ .compare-grid{grid-template-columns:1fr;} }
-  .compare-card{background:var(--panel-2);border:1px solid var(--border);border-radius:10px;padding:16px;}
-  .compare-card h3{font-family:'Space Grotesk';font-size:14px;margin:0 0 10px;}
-  .compare-line{display:flex;justify-content:space-between;font-size:12.5px;padding:6px 0;border-top:1px solid var(--border);}
-  .compare-line:first-of-type{border-top:none;}
-  .compare-line b{font-family:'IBM Plex Mono';font-weight:500;}
+    .auth-initial-avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--amber);
+      color: #0A1512;
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 700;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      user-select: none;
+    }
 
-  /* Auth Overlay */
-  .auth-overlay {
-    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-    background: rgba(10, 10, 12, 0.7); z-index: 9999; display: flex;
-    align-items: center; justify-content: center;
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-  }
-  .auth-box {
-    background: var(--surface); padding: 40px; border-radius: 12px;
-    border: 1px solid var(--border); width: 100%; max-width: 400px;
-    text-align: center;
-    box-shadow: 0 20px 40px rgba(0,0,0,0.4);
-  }
-  .auth-box h2 { font-family: 'Space Grotesk', sans-serif; margin-bottom: 24px; font-size: 24px; }
-  .auth-box input {
-    width: 100%; padding: 12px; margin-bottom: 16px;
-    background: var(--bg); border: 1px solid var(--border);
-    color: var(--fg); border-radius: 6px; box-sizing: border-box;
-  }
-  .auth-box button {
-    width: 100%; padding: 12px; background: var(--teal);
-    color: #fff; border: none; border-radius: 6px;
-    font-weight: bold; cursor: pointer; margin-bottom: 12px;
-  }
-  .auth-box button:hover { background: #199480; }
-  .auth-box button.outline {
-    background: transparent; border: 1px solid var(--teal); color: var(--teal);
-  }
-  .auth-box button.outline:hover { background: rgba(32, 178, 170, 0.1); }
-  .auth-error { color: var(--red); font-size: 14px; margin-bottom: 16px; display: none; }
+    .auth-user .auth-name {
+      font-size: 13px;
+      color: var(--text);
+      font-weight: 500;
+    }
 
+    .auth-signout {
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-family: 'Inter', sans-serif;
+      font-size: 12px;
+      cursor: pointer;
+      padding: 0;
+      margin-left: 4px;
+      text-decoration: underline;
+    }
+
+    .auth-signout:hover {
+      color: var(--red);
+    }
+
+    main {
+      padding: 28px 24px 24px;
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      gap: 24px;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    @media (max-width:860px) {
+      main {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Sidebar Navigation */
+    .sidebar-nav {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .sidebar-btn {
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--muted);
+      font-family: 'Inter', sans-serif;
+      font-weight: 500;
+      font-size: 14px;
+      padding: 12px 16px;
+      cursor: pointer;
+      border-radius: 8px;
+      text-align: left;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .sidebar-btn:hover {
+      background: var(--bg-hover);
+      color: var(--fg);
+    }
+
+    .sidebar-btn.active {
+      background: var(--panel-2);
+      border-color: var(--border);
+      color: var(--teal);
+    }
+
+    .main-tab-content {
+      display: none;
+      animation: fadeIn 0.2s ease-in-out;
+    }
+
+    .main-tab-content.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(5px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 22px;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
+    }
+
+    .panel h2 {
+      font-family: 'Space Grotesk';
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin: 0 0 18px;
+    }
+
+    label {
+      display: block;
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 6px;
+      margin-top: 18px;
+    }
+
+    label:first-of-type {
+      margin-top: 0;
+    }
+
+    .amt-input {
+      position: relative;
+    }
+
+    .amt-input span {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--amber);
+      font-family: 'IBM Plex Mono';
+      font-size: 16px;
+    }
+
+    input[type=number] {
+      width: 100%;
+      background: var(--panel-2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 16px;
+      padding: 12px 12px 12px 30px;
+      outline: none;
+    }
+
+    input[type=number]:focus {
+      border-color: var(--amber);
+    }
+
+    .risk-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .risk-btn {
+      flex: 1;
+      background: var(--panel-2);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      border-radius: 8px;
+      padding: 9px 4px;
+      font-size: 12px;
+      font-family: 'Inter';
+      cursor: pointer;
+      text-align: center;
+      transition: all .15s;
+    }
+
+    .risk-btn.active {
+      border-color: var(--amber);
+      color: var(--amber);
+      background: rgba(227, 165, 66, 0.08);
+    }
+
+    .sector-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .chip {
+      border: 1px solid var(--border);
+      background: var(--panel-2);
+      color: var(--muted);
+      font-size: 12px;
+      padding: 8px 12px;
+      border-radius: 100px;
+      cursor: pointer;
+      user-select: none;
+      transition: all .15s;
+    }
+
+    .chip.active {
+      border-color: var(--teal);
+      color: var(--teal);
+      background: rgba(47, 182, 140, 0.08);
+    }
+
+    .rule-row {
+      display: flex;
+      gap: 12px;
+      margin-top: 0;
+    }
+
+    .rule-row>div {
+      flex: 1;
+    }
+
+    .small-input {
+      margin-top: 0;
+    }
+
+    .small-input input {
+      padding-right: 34px;
+    }
+
+    .unit-suffix {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+      font-family: 'IBM Plex Mono';
+      font-size: 12px;
+    }
+
+    select {
+      width: 100%;
+      background: var(--panel-2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: 'Inter';
+      font-size: 13px;
+      padding: 11px 12px;
+      outline: none;
+    }
+
+    select:focus {
+      border-color: var(--amber);
+    }
+
+    .playbook {
+      background: var(--panel-2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px 18px;
+      font-size: 12.5px;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    .playbook b {
+      color: var(--text);
+    }
+
+    .stop-cell {
+      font-family: 'IBM Plex Mono';
+      color: var(--red);
+      font-size: 12px;
+    }
+
+    .entry-cell {
+      font-family: 'IBM Plex Mono';
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .rebalance-table td {
+      font-size: 12px;
+    }
+
+    .drift-ok {
+      color: var(--teal);
+      font-family: 'IBM Plex Mono';
+      font-size: 11px;
+    }
+
+    .build-btn {
+      width: 100%;
+      margin-top: 24px;
+      background: var(--amber);
+      color: #1A1305;
+      border: none;
+      border-radius: 8px;
+      padding: 13px;
+      font-family: 'Space Grotesk';
+      font-weight: 700;
+      font-size: 14px;
+      cursor: pointer;
+      letter-spacing: 0.01em;
+    }
+
+    .build-btn:hover {
+      background: #eeb85f;
+    }
+
+    .hint {
+      font-size: 11px;
+      color: var(--muted-2);
+      margin-top: 14px;
+      line-height: 1.5;
+    }
+
+    /* RESULTS */
+    .results-top {
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      gap: 20px;
+    }
+
+    @media (max-width:640px) {
+      .results-top {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .gauge-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .gauge-label {
+      font-size: 11px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-top: 6px;
+    }
+
+    .gauge-figs {
+      display: flex;
+      gap: 16px;
+      margin-top: 10px;
+    }
+
+    .gauge-fig {
+      text-align: center;
+    }
+
+    .gauge-fig b {
+      display: block;
+      font-family: 'IBM Plex Mono';
+      font-size: 14px;
+    }
+
+    .gauge-fig span {
+      font-size: 10px;
+      color: var(--muted-2);
+    }
+
+    .split-bars {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 14px;
+    }
+
+    .split-row {}
+
+    .split-row .row-top {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      margin-bottom: 6px;
+    }
+
+    .split-row .row-top b {
+      font-family: 'IBM Plex Mono';
+      font-weight: 500;
+    }
+
+    .bar-track {
+      height: 8px;
+      background: var(--panel-2);
+      border-radius: 100px;
+      overflow: hidden;
+    }
+
+    .bar-fill {
+      height: 100%;
+      border-radius: 100px;
+      transition: width .5s ease;
+    }
+
+    .section-title {
+      font-family: 'Space Grotesk';
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin: 28px 0 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .section-title::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    /* AI Tabs */
+    .ai-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 8px;
+      overflow-x: auto;
+    }
+
+    .ai-tab-btn {
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-family: 'Inter', sans-serif;
+      font-weight: 500;
+      font-size: 14px;
+      padding: 8px 16px;
+      cursor: pointer;
+      border-radius: 6px;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+    }
+
+    .ai-tab-btn:hover {
+      background: var(--bg-hover);
+      color: var(--fg);
+    }
+
+    .ai-tab-btn.active {
+      background: var(--bg-hover);
+      color: var(--teal);
+    }
+
+    .ai-tab-content {
+      display: none;
+    }
+
+    .ai-tab-content.active {
+      display: block;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th {
+      text-align: left;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted-2);
+      padding: 0 10px 8px;
+      font-weight: 500;
+    }
+
+    td {
+      padding: 10px;
+      border-top: 1px solid var(--border);
+      font-size: 13px;
+      vertical-align: middle;
+    }
+
+    .ticker-cell {
+      font-family: 'IBM Plex Mono';
+      color: var(--amber);
+      font-size: 12px;
+    }
+
+    .name-cell {
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .price-input {
+      width: 90px;
+      background: var(--panel-2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      font-family: 'IBM Plex Mono';
+      font-size: 12px;
+      padding: 6px 8px;
+    }
+
+    .qty-cell {
+      font-family: 'IBM Plex Mono';
+      color: var(--teal);
+    }
+
+    .instrument-row td {
+      color: var(--muted);
+    }
+
+    .instrument-row .ticker-cell {
+      color: var(--muted);
+    }
+
+    .disclaimer {
+      margin-top: 32px;
+      border: 1px dashed var(--border);
+      border-radius: 10px;
+      padding: 16px 18px;
+      font-size: 11.5px;
+      color: var(--muted-2);
+      line-height: 1.6;
+    }
+
+    .disclaimer b {
+      color: var(--muted);
+    }
+
+    .empty-state {
+      color: var(--muted-2);
+      font-size: 13px;
+      padding: 60px 20px;
+      text-align: center;
+    }
+
+    .save-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .save-row input[type=text] {
+      flex: 1;
+      min-width: 220px;
+      background: var(--panel-2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: 'Inter';
+      font-size: 13px;
+      padding: 10px 12px;
+      outline: none;
+    }
+
+    .save-row input[type=text]:focus {
+      border-color: var(--amber);
+    }
+
+    .mini-btn {
+      background: var(--amber);
+      color: #1A1305;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 16px;
+      font-family: 'Space Grotesk';
+      font-weight: 700;
+      font-size: 12.5px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .mini-btn:hover {
+      background: #eeb85f;
+    }
+
+    .mini-btn-outline {
+      background: transparent;
+      border: 1px solid var(--teal);
+      color: var(--teal);
+    }
+
+    .mini-btn-outline:hover {
+      background: rgba(47, 182, 140, 0.08);
+    }
+
+    .mini-btn-ghost {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      padding: 6px 10px;
+      font-size: 11px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-family: 'Inter';
+      margin-right: 4px;
+    }
+
+    .mini-btn-ghost:hover {
+      border-color: var(--muted);
+      color: var(--text);
+    }
+
+    #savedListWrap {
+      margin-top: 20px;
+    }
+
+    #savedTable td {
+      font-size: 12.5px;
+    }
+
+    #savedTable .ticker-cell {
+      font-size: 12px;
+    }
+
+    .delta-up {
+      color: var(--teal);
+      font-family: 'IBM Plex Mono';
+      font-size: 12px;
+    }
+
+    .delta-down {
+      color: var(--red);
+      font-family: 'IBM Plex Mono';
+      font-size: 12px;
+    }
+
+    .delta-flat {
+      color: var(--muted);
+      font-family: 'IBM Plex Mono';
+      font-size: 12px;
+    }
+
+    .compare-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-top: 16px;
+    }
+
+    @media (max-width:640px) {
+      .compare-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .compare-card {
+      background: var(--panel-2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px;
+    }
+
+    .compare-card h3 {
+      font-family: 'Space Grotesk';
+      font-size: 14px;
+      margin: 0 0 10px;
+    }
+
+    .compare-line {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12.5px;
+      padding: 6px 0;
+      border-top: 1px solid var(--border);
+    }
+
+    .compare-line:first-of-type {
+      border-top: none;
+    }
+
+    .compare-line b {
+      font-family: 'IBM Plex Mono';
+      font-weight: 500;
+    }
+
+    /* Auth Gateway Card */
+    .auth-gateway-card {
+      background: linear-gradient(145deg, var(--panel), var(--panel-2));
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 48px 32px;
+      margin: 40px auto;
+      max-width: 580px;
+      text-align: center;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
+      animation: fadeIn 0.3s ease-in-out;
+    }
+
+    .auth-gateway-card h2 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 24px;
+      color: var(--text);
+      margin: 0 0 12px;
+      font-weight: 700;
+    }
+
+    .auth-gateway-card p {
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.6;
+      margin: 0 0 28px;
+    }
+
+    .gateway-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+      display: inline-block;
+    }
+
+    .gateway-btn-wrap {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 48px;
+    }
   </style>
 </head>
+
 <body>
-  <!-- AUTH OVERLAY -->
-  <div id="authOverlay" class="auth-overlay">
-    <div class="auth-box">
-      <img src="/static/logo.png" alt="QuantSys Logo" style="width:72px; height:72px; border-radius:16px; object-fit:cover; box-shadow: 0 4px 15px rgba(0,0,0,0.6); margin-bottom: 16px;">
-      <h2>Welcome to Nivesh</h2>
-      <div class="tagline" style="margin-bottom:24px;">Sign in to save and refine your portfolios</div>
-      <div id="authError" class="auth-error"></div>
-      <button id="googleSignInBtn" style="display:flex; align-items:center; justify-content:center; gap:12px; background:white; color:#333; border:none; padding:12px 24px; border-radius:8px; font-weight:600; cursor:pointer; width:100%; max-width:300px; margin:0 auto; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-        <svg width="24" height="24" viewBox="0 0 48 48">
-          <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
-          <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
-          <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
-          <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
-        </svg>
-        Sign in with Google
-      </button>
+  <div class="app">
 
-      <div style="display:flex; align-items:center; gap:12px; margin: 20px 0; color:var(--muted); font-size:12px;">
-        <div style="flex:1; height:1px; background:var(--border);"></div>
-        <span>OR</span>
-        <div style="flex:1; height:1px; background:var(--border);"></div>
-      </div>
-
-      <div style="display:flex; flex-direction:column; gap:10px; width:100%; max-width:300px; margin:0 auto;">
-        <input type="email" id="quickEmailInput" placeholder="Enter your email address" style="padding:10px 14px; border-radius:8px; border:1px solid var(--border); background:rgba(255,255,255,0.05); color:white; font-size:14px; width:100%; box-sizing:border-box;">
-        <button id="quickLoginBtn" style="padding:10px; border-radius:8px; border:none; background:var(--accent); color:black; font-weight:600; cursor:pointer; width:100%;">Continue with Email</button>
-      </div>
+    <div class="ticker-wrap">
+      <div class="ticker" id="tickerStrip"></div>
     </div>
-  </div>
-<div class="app">
 
-  <div class="ticker-wrap">
-    <div class="ticker" id="tickerStrip"></div>
-  </div>
-
-  <header>
-    <div class="brand">
-      <img src="/static/logo.png" alt="QuantSys Logo" style="width:64px; height:64px; border-radius:14px; object-fit:cover; box-shadow: 0 2px 10px rgba(0,0,0,0.5);">
-      <div>
-        <h1>QuantSys</h1>
-        <div class="tagline">Self-Refinement Portal — allocation &amp; risk-rule modelling for the Indian equity market</div>
-      </div>
-    </div>
-    <div id="welcomeUser" class="badge" style="margin-left: auto; margin-right: 16px; background: rgba(56, 189, 248, 0.1); color: #38bdf8; display: none; font-size: 14px;"></div>
-    
-    <button id="logoutBtn" style="background: transparent; border: 1px solid var(--border); color: var(--red); padding: 6px 12px; border-radius: 6px; cursor: pointer; display: none; align-items: center; gap: 6px; font-size: 13px; margin-right: 16px;">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
-      Logout
-    </button>
-    
-    <div class="badge">EDUCATIONAL MODEL · NOT ADVICE</div>
-  </header>
-
-  <main>
-    <!-- SIDEBAR NAVIGATION -->
-    <aside class="sidebar-nav">
-      <button class="sidebar-btn" id="navSavedBtn" onclick="switchMainTab('tabSaved', this)">💾 Saved Portfolios</button>
-      <button class="sidebar-btn active" id="navModelBtn" onclick="switchMainTab('tabModel', this)">⚙️ Build your Model</button>
-      <button class="sidebar-btn" id="navPortfolioBtn" onclick="switchMainTab('tabPortfolio', this)">📊 Proposed Portfolio</button>
-      <button class="sidebar-btn" id="navInsightsBtn" onclick="switchMainTab('tabInsights', this)">✨ AI Insights</button>
-    </aside>
-
-    <div class="content-area">
-      <!-- INPUT PANEL -->
-      <div class="panel main-tab-content active" id="tabModel">
-        <h2>Build your model</h2>
-
-      <label>Investment amount</label>
-      <div class="amt-input">
-        <span>₹</span>
-        <input type="number" id="amount" value="500000" min="10000" step="5000">
-      </div>
-
-      <label>Risk profile</label>
-      <div class="risk-row" id="riskRow">
-        <div class="risk-btn" data-risk="conservative">Conservative</div>
-        <div class="risk-btn active" data-risk="moderate">Moderate</div>
-        <div class="risk-btn" data-risk="aggressive">Aggressive</div>
-      </div>
-
-      <label>Sector tilt (pick 2–5)</label>
-      <div class="sector-grid" id="sectorGrid"></div>
-
-      <div class="rule-row">
+    <header>
+      <div class="brand">
+        <img src="/static/logo.png" alt="QuantSys Logo"
+          style="width:64px; height:64px; border-radius:14px; object-fit:cover; box-shadow: 0 2px 10px rgba(0,0,0,0.5);">
         <div>
-          <label>Stop-loss trigger</label>
-          <div class="amt-input small-input">
-            <input type="number" id="stopLossPct" value="15" min="1" max="50" step="1">
-            <span class="unit-suffix">%</span>
-          </div>
-        </div>
-        <div>
-          <label>Rebalance drift band</label>
-          <div class="amt-input small-input">
-            <input type="number" id="driftPct" value="5" min="1" max="25" step="1">
-            <span class="unit-suffix">pp</span>
-          </div>
+          <h1>QuantSys</h1>
+          <div class="tagline">Self-Refinement Portal — allocation &amp; risk-rule modelling for the Indian equity
+            market</div>
         </div>
       </div>
-      <label>Review cadence</label>
-      <select id="cadence">
-        <option value="Monthly">Monthly</option>
-        <option value="Quarterly" selected>Quarterly</option>
-        <option value="Semi-annually">Semi-annually</option>
-      </select>
-
-      <button class="build-btn" id="buildBtn">Build portfolio →</button>
-
-      <div class="hint">
-        The model reserves 25% of your capital as a buffer for market dynamics (drawdowns, averaging, opportunistic entries) and deploys the rest across large-cap stocks and broad mid/small-cap index instruments, weighted by risk profile.
+      <div class="auth-widget">
+        <div class="badge">EDUCATIONAL MODEL · NOT ADVICE</div>
+        <div id="googleSignInBtn"></div>
+        <div class="auth-user" id="authUserChip">
+          <img id="authUserPic" src="" alt="" referrerpolicy="no-referrer" style="display:none;" onerror="this.style.display='none'; const init = document.getElementById('authUserInitial'); if (init) init.style.display='flex';">
+          <div id="authUserInitial" class="auth-initial-avatar" style="display:none;"></div>
+          <span class="auth-name" id="authUserName"></span>
+          <button class="auth-signout" id="authSignOutBtn">Sign out</button>
+        </div>
       </div>
+    </header>
+
+    <!-- AUTHENTICATION GATEWAY CARD -->
+    <div id="authGateway" class="auth-gateway-card" style="display:none;">
+      <div class="gateway-icon">🔐</div>
+      <h2>Authentication Required</h2>
+      <p>Sign in with your Google account to access QuantSys AI Portfolio Manager, build quantitative allocation models, fetch live market data, and generate AI insights.</p>
+      <div id="gatewayGoogleBtn" class="gateway-btn-wrap"></div>
     </div>
 
-    <!-- RESULTS -->
-    <div class="panel main-tab-content" id="tabPortfolio">
-      <h2>Proposed portfolio</h2>
-      <button class="build-btn" id="aiBtn" style="background:var(--teal); margin-top:0; margin-bottom: 20px; display:none;">✨ AI Predict & Rebalance</button>
-      <div class="empty-state" id="emptyState">Set your amount, risk profile and sectors, then build the portfolio.</div>
-      <div id="resultsBody" style="display:none;"></div>
-    </div>
-    
-    <!-- AI RESULTS PANEL -->
-    <div class="panel main-tab-content" id="tabInsights">
-       <h2 style="color: var(--teal);">✨ AI Insights</h2>
-         <div id="aiLoading" style="display:none; font-family:'IBM Plex Mono'; font-size: 13px; color: var(--teal); padding: 14px; background: rgba(47,182,140,0.08); border: 1px solid var(--teal); border-radius: 8px; margin-bottom: 16px;">
+    <main id="appMain" style="display:none;">
+      <!-- SIDEBAR NAVIGATION -->
+      <aside class="sidebar-nav">
+        <button class="sidebar-btn active" id="navModelBtn" onclick="switchMainTab('tabModel', this)">⚙️ Build your
+          Model</button>
+        <button class="sidebar-btn" id="navPortfolioBtn" onclick="switchMainTab('tabPortfolio', this)">📊 Proposed
+          Portfolio</button>
+        <button class="sidebar-btn" id="navInsightsBtn" onclick="switchMainTab('tabInsights', this)">✨ AI
+          Insights</button>
+        <button class="sidebar-btn" id="navSavedBtn" onclick="switchMainTab('tabSaved', this)">💾 Saved
+          Portfolios</button>
+      </aside>
+
+      <div class="content-area">
+        <!-- INPUT PANEL -->
+        <div class="panel main-tab-content active" id="tabModel">
+          <h2>Build your model</h2>
+
+          <label>Investment amount</label>
+          <div class="amt-input">
+            <span>₹</span>
+            <input type="number" id="amount" value="500000" min="10000" step="5000">
+          </div>
+
+          <label>Risk profile</label>
+          <div class="risk-row" id="riskRow">
+            <div class="risk-btn" data-risk="conservative">Conservative</div>
+            <div class="risk-btn active" data-risk="moderate">Moderate</div>
+            <div class="risk-btn" data-risk="aggressive">Aggressive</div>
+          </div>
+
+          <label>Sector tilt (pick 2–5)</label>
+          <div class="sector-grid" id="sectorGrid"></div>
+
+          <div class="rule-row">
+            <div>
+              <label>Stop-loss trigger</label>
+              <div class="amt-input small-input">
+                <input type="number" id="stopLossPct" value="15" min="1" max="50" step="1">
+                <span class="unit-suffix">%</span>
+              </div>
+            </div>
+            <div>
+              <label>Rebalance drift band</label>
+              <div class="amt-input small-input">
+                <input type="number" id="driftPct" value="5" min="1" max="25" step="1">
+                <span class="unit-suffix">pp</span>
+              </div>
+            </div>
+          </div>
+          <label>Review cadence</label>
+          <select id="cadence">
+            <option value="Monthly">Monthly</option>
+            <option value="Quarterly" selected>Quarterly</option>
+            <option value="Semi-annually">Semi-annually</option>
+          </select>
+
+          <button class="build-btn" id="buildBtn">Build portfolio →</button>
+
+          <div class="hint">
+            The model reserves 25% of your capital as a buffer for market dynamics (drawdowns, averaging, opportunistic
+            entries) and deploys the rest across large-cap stocks and broad mid/small-cap index instruments, weighted by
+            risk profile.
+          </div>
+        </div>
+
+        <!-- RESULTS -->
+        <div class="panel main-tab-content" id="tabPortfolio">
+          <h2>Proposed portfolio</h2>
+          <button class="build-btn" id="aiBtn"
+            style="background:var(--teal); margin-top:0; margin-bottom: 20px; display:none;">✨ AI Predict &
+            Rebalance</button>
+          <div class="empty-state" id="emptyState">Set your amount, risk profile and sectors, then build the portfolio.
+          </div>
+          <div id="resultsBody" style="display:none;"></div>
+        </div>
+
+        <!-- AI RESULTS PANEL -->
+        <div class="panel main-tab-content" id="tabInsights">
+          <h2 style="color: var(--teal);">✨ AI Insights</h2>
+          <div id="aiLoading"
+            style="display:none; font-family:'IBM Plex Mono'; font-size: 13px; color: var(--teal); padding: 14px; background: rgba(47,182,140,0.08); border: 1px solid var(--teal); border-radius: 8px; margin-bottom: 16px;">
             <span style="display:inline-block; animation: spin 1.5s linear infinite; margin-right: 8px;">⏳</span>
             <span id="aiLoadingText">Fetching live market prices and analyzing predictions...</span>
-         </div>
-         <div id="aiContent" style="display:none;">
+          </div>
+          <div id="aiContent" style="display:none;">
             <div class="ai-tabs">
-              <button class="ai-tab-btn active" onclick="switchAITab('marketTab', this)">Market & Sector Analysis</button>
+              <button class="ai-tab-btn active" onclick="switchAITab('marketTab', this)">Market & Sector
+                Analysis</button>
               <button class="ai-tab-btn" onclick="switchAITab('corporateTab', this)">Corporate Guidance</button>
               <button class="ai-tab-btn" onclick="switchAITab('predictionTab', this)">AI Predictions & Strategy</button>
             </div>
-            
+
             <div id="marketTab" class="ai-tab-content active">
-               <div class="playbook" id="aiMarketText"></div>
+              <div class="playbook" id="aiMarketText"></div>
             </div>
-            
+
             <div id="corporateTab" class="ai-tab-content">
-               <div class="playbook" id="aiCorporateText"></div>
+              <div class="playbook" id="aiCorporateText"></div>
             </div>
-            
+
             <div id="predictionTab" class="ai-tab-content">
-               <div class="playbook" id="aiPredictionText"></div>
+              <div class="playbook" id="aiPredictionText"></div>
             </div>
-         </div>
-       </div>
-    </div>
-
-    <!-- SAVED PORTFOLIOS -->
-    <div class="panel main-tab-content" id="tabSaved">
-      <h2>Saved portfolios <span style="text-transform:none;letter-spacing:normal;color:var(--muted-2);font-size:11px;">— stored in this browser only</span></h2>
-
-      <div class="save-row">
-        <input type="text" id="snapshotName" placeholder="Name this portfolio (e.g. Moderate — July)">
-        <button class="mini-btn" id="saveNewBtn">Save as new</button>
-        <button class="mini-btn mini-btn-outline" id="updateBtn" style="display:none;">Update loaded portfolio</button>
-      </div>
-      <div class="hint" id="activeLabel"></div>
-
-      <div id="savedListWrap">
-        <div class="empty-state" id="savedEmptyState" style="padding:24px 0;">Nothing saved yet — build a portfolio above, then save it here.</div>
-        <table id="savedTable" style="display:none;">
-          <thead><tr><th></th><th>Name</th><th>Risk</th><th>Amount</th><th>Entries</th><th>Last updated</th><th></th></tr></thead>
-          <tbody id="savedListBody"></tbody>
-        </table>
-        <button class="mini-btn" id="compareBtn" style="display:none;margin-top:14px;">Compare selected (2)</button>
+          </div>
+        </div>
       </div>
 
-      <div id="compareOutput"></div>
-      <div id="historyOutput"></div>
-    </div>
+      <!-- SAVED PORTFOLIOS -->
+      <div class="panel main-tab-content" id="tabSaved">
+        <h2>Saved portfolios <span
+            style="text-transform:none;letter-spacing:normal;color:var(--muted-2);font-size:11px;">— stored in this
+            browser only</span></h2>
 
-    <div class="disclaimer" style="margin-top:24px;">
-      <b>Disclaimer:</b> QuantSys is an educational allocation model, not investment advice or a trade recommendation. Company names are illustrative examples of well-known NSE-listed businesses in each sector, not a solicitation to buy or sell. Share prices shown are placeholders — enter live LTP (last traded price) yourself before using any figures. Quantities and rupee splits are indicative only and don't account for lot sizes, brokerage, STT, or taxes. Please consult a SEBI-registered investment adviser and verify all data on a live terminal before placing any trade.
-    </div>
+        <div class="save-row">
+          <input type="text" id="snapshotName" placeholder="Name this portfolio (e.g. Moderate — July)">
+          <button class="mini-btn" id="saveNewBtn">Save as new</button>
+          <button class="mini-btn mini-btn-outline" id="updateBtn" style="display:none;">Update loaded
+            portfolio</button>
+        </div>
+        <div class="hint" id="activeLabel"></div>
 
-    </div> <!-- end content-area -->
+        <div id="savedListWrap">
+          <div class="empty-state" id="savedEmptyState" style="padding:24px 0;">Nothing saved yet — build a portfolio
+            above, then save it here.</div>
+          <table id="savedTable" style="display:none;">
+            <thead>
+              <tr>
+                <th></th>
+                <th>Name</th>
+                <th>Risk</th>
+                <th>Amount</th>
+                <th>Entries</th>
+                <th>Last updated</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="savedListBody"></tbody>
+          </table>
+          <button class="mini-btn" id="compareBtn" style="display:none;margin-top:14px;">Compare selected (2)</button>
+        </div>
+
+        <div id="compareOutput"></div>
+        <div id="historyOutput"></div>
+      </div>
+
+      <div class="disclaimer" style="margin-top:24px;">
+        <b>Disclaimer:</b> QuantSys is an educational allocation model, not investment advice or a trade recommendation.
+        Company names are illustrative examples of well-known NSE-listed businesses in each sector, not a solicitation
+        to buy or sell. Share prices shown are placeholders — enter live LTP (last traded price) yourself before using
+        any figures. Quantities and rupee splits are indicative only and don't account for lot sizes, brokerage, STT, or
+        taxes. Please consult a SEBI-registered investment adviser and verify all data on a live terminal before placing
+        any trade.
+      </div>
+
+  </div> <!-- end content-area -->
   </main>
-</div>
+  </div>
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getAuth, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+  <script>
+    try {
 
-try{
+      const SECTORS = {
+        banking: {
+          name: "Banking & Financials", stocks: [
+            { t: "HDFCBANK", n: "HDFC Bank" }, { t: "ICICIBANK", n: "ICICI Bank" }, { t: "KOTAKBANK", n: "Kotak Mahindra Bank" }]
+        },
+        it: {
+          name: "IT Services", stocks: [
+            { t: "TCS", n: "Tata Consultancy Services" }, { t: "INFY", n: "Infosys" }, { t: "HCLTECH", n: "HCL Technologies" }]
+        },
+        fmcg: {
+          name: "FMCG", stocks: [
+            { t: "HINDUNILVR", n: "Hindustan Unilever" }, { t: "ITC", n: "ITC" }, { t: "NESTLEIND", n: "Nestle India" }]
+        },
+        auto: {
+          name: "Auto", stocks: [
+            { t: "MARUTI", n: "Maruti Suzuki" }, { t: "TATAMOTORS", n: "Tata Motors" }, { t: "BAJAJ-AUTO", n: "Bajaj Auto" }]
+        },
+        pharma: {
+          name: "Pharma & Healthcare", stocks: [
+            { t: "SUNPHARMA", n: "Sun Pharma" }, { t: "CIPLA", n: "Cipla" }, { t: "DRREDDY", n: "Dr Reddy's Labs" }]
+        },
+        energy: {
+          name: "Energy & Infra", stocks: [
+            { t: "RELIANCE", n: "Reliance Industries" }, { t: "NTPC", n: "NTPC" }, { t: "LT", n: "Larsen & Toubro" }]
+        }
+      };
 
-const SECTORS = {
-  banking:{name:"Banking & Financials", stocks:[
-    {t:"HDFCBANK",n:"HDFC Bank"},{t:"ICICIBANK",n:"ICICI Bank"},{t:"KOTAKBANK",n:"Kotak Mahindra Bank"}]},
-  it:{name:"IT Services", stocks:[
-    {t:"TCS",n:"Tata Consultancy Services"},{t:"INFY",n:"Infosys"},{t:"HCLTECH",n:"HCL Technologies"}]},
-  fmcg:{name:"FMCG", stocks:[
-    {t:"HINDUNILVR",n:"Hindustan Unilever"},{t:"ITC",n:"ITC"},{t:"NESTLEIND",n:"Nestle India"}]},
-  auto:{name:"Auto", stocks:[
-    {t:"MARUTI",n:"Maruti Suzuki"},{t:"TATAMOTORS",n:"Tata Motors"},{t:"BAJAJ-AUTO",n:"Bajaj Auto"}]},
-  pharma:{name:"Pharma & Healthcare", stocks:[
-    {t:"SUNPHARMA",n:"Sun Pharma"},{t:"CIPLA",n:"Cipla"},{t:"DRREDDY",n:"Dr Reddy's Labs"}]},
-  energy:{name:"Energy & Infra", stocks:[
-    {t:"RELIANCE",n:"Reliance Industries"},{t:"NTPC",n:"NTPC"},{t:"LT",n:"Larsen & Toubro"}]}
-};
+      const RISK = {
+        conservative: { large: 80, mid: 15, small: 5 },
+        moderate: { large: 60, mid: 25, small: 15 },
+        aggressive: { large: 40, mid: 30, small: 30 }
+      };
 
-const RISK = {
-  conservative:{large:80, mid:15, small:5},
-  moderate:{large:60, mid:25, small:15},
-  aggressive:{large:40, mid:30, small:30}
-};
+      let selectedRisk = "moderate";
+      let selectedSectors = new Set(["banking", "it", "fmcg"]);
 
-let selectedRisk = "moderate";
-let selectedSectors = new Set(["banking","it","fmcg"]);
+      // Ticker strip (decorative index names only — not live data)
+      const tickerNames = ["NIFTY 50", "SENSEX", "BANK NIFTY", "NIFTY MIDCAP 150", "NIFTY SMALLCAP 250", "NIFTY IT", "NIFTY FMCG", "NIFTY AUTO", "NIFTY PHARMA"];
+      document.getElementById('tickerStrip').innerHTML =
+        tickerNames.map(function (n) { return '<span><b>' + n + '</b> · index</span>'; }).join('') +
+        tickerNames.map(function (n) { return '<span><b>' + n + '</b> · index</span>'; }).join('');
 
-// Ticker strip (decorative index names only — not live data)
-const tickerNames = ["NIFTY 50","SENSEX","BANK NIFTY","NIFTY MIDCAP 150","NIFTY SMALLCAP 250","NIFTY IT","NIFTY FMCG","NIFTY AUTO","NIFTY PHARMA"];
-document.getElementById('tickerStrip').innerHTML =
-  tickerNames.map(function(n){ return '<span><b>'+n+'</b> · index</span>'; }).join('') +
-  tickerNames.map(function(n){ return '<span><b>'+n+'</b> · index</span>'; }).join('');
+      // Sector chips
+      const grid = document.getElementById('sectorGrid');
+      Object.keys(SECTORS).forEach(function (key) {
+        const chip = document.createElement('div');
+        chip.className = 'chip' + (selectedSectors.has(key) ? ' active' : '');
+        chip.textContent = SECTORS[key].name;
+        chip.dataset.key = key;
+        chip.addEventListener('click', function () {
+          if (selectedSectors.has(key)) {
+            if (selectedSectors.size > 1) { selectedSectors.delete(key); chip.classList.remove('active'); }
+          } else {
+            selectedSectors.add(key); chip.classList.add('active');
+          }
+        });
+        grid.appendChild(chip);
+      });
 
-// Sector chips
-const grid = document.getElementById('sectorGrid');
-Object.keys(SECTORS).forEach(function(key){
-  const chip = document.createElement('div');
-  chip.className = 'chip' + (selectedSectors.has(key) ? ' active' : '');
-  chip.textContent = SECTORS[key].name;
-  chip.dataset.key = key;
-  chip.addEventListener('click', function(){
-    if(selectedSectors.has(key)){
-      if(selectedSectors.size>1){ selectedSectors.delete(key); chip.classList.remove('active'); }
-    } else {
-      selectedSectors.add(key); chip.classList.add('active');
-    }
-  });
-  grid.appendChild(chip);
-});
+      // Risk buttons
+      const riskButtons = document.querySelectorAll('.risk-btn');
+      riskButtons.forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          riskButtons.forEach(function (b) { b.classList.remove('active'); });
+          btn.classList.add('active');
+          selectedRisk = btn.dataset.risk;
+        });
+      });
 
-// Risk buttons
-const riskButtons = document.querySelectorAll('.risk-btn');
-riskButtons.forEach(function(btn){
-  btn.addEventListener('click', function(){
-    riskButtons.forEach(function(b){ b.classList.remove('active'); });
-    btn.classList.add('active');
-    selectedRisk = btn.dataset.risk;
-  });
-});
+      function inr(n) {
+        return '₹' + Math.round(n).toLocaleString('en-IN');
+      }
 
-function inr(n){
-  return '₹' + Math.round(n).toLocaleString('en-IN');
-}
+      function buildGauge(bufferPct) {
+        const deployedPct = 100 - bufferPct;
+        const circumference = Math.PI * 60;
+        const deployedLen = circumference * (deployedPct / 100);
+        return '<svg width="160" height="100" viewBox="0 0 160 100">' +
+          '<path d="M 20 80 A 60 60 0 0 1 140 80" fill="none" stroke="#20342A" stroke-width="14" stroke-linecap="round"/>' +
+          '<path d="M 20 80 A 60 60 0 0 1 140 80" fill="none" stroke="#D9A441" stroke-width="14" stroke-linecap="round" ' +
+          'stroke-dasharray="' + deployedLen + ' ' + circumference + '"/>' +
+          '<text x="80" y="72" text-anchor="middle" font-family="Space Grotesk" font-size="20" font-weight="700" fill="#E9F2EC">' + deployedPct + '%</text>' +
+          '<text x="80" y="88" text-anchor="middle" font-family="Inter" font-size="9" fill="#8FA79A">deployed</text>' +
+          '</svg>';
+      }
 
-function buildGauge(bufferPct){
-  const deployedPct = 100 - bufferPct;
-  const circumference = Math.PI * 60;
-  const deployedLen = circumference * (deployedPct/100);
-  return '<svg width="160" height="100" viewBox="0 0 160 100">' +
-    '<path d="M 20 80 A 60 60 0 0 1 140 80" fill="none" stroke="#20342A" stroke-width="14" stroke-linecap="round"/>' +
-    '<path d="M 20 80 A 60 60 0 0 1 140 80" fill="none" stroke="#D9A441" stroke-width="14" stroke-linecap="round" ' +
-      'stroke-dasharray="'+deployedLen+' '+circumference+'"/>' +
-    '<text x="80" y="72" text-anchor="middle" font-family="Space Grotesk" font-size="20" font-weight="700" fill="#E9F2EC">'+deployedPct+'%</text>' +
-    '<text x="80" y="88" text-anchor="middle" font-family="Inter" font-size="9" fill="#8FA79A">deployed</text>' +
-  '</svg>';
-}
+      function updateQtyForRow(input) {
+        const amt = parseFloat(input.dataset.amt);
+        const price = parseFloat(input.value) || 1;
+        const qty = Math.floor(amt / price);
+        const rowId = input.dataset.rowid;
+        const qtyCell = document.getElementById('qty-' + rowId);
+        if (qtyCell) qtyCell.textContent = qty;
+        updateStopCellForRow(rowId, price);
+      }
 
-function updateQtyForRow(input){
-  const amt = parseFloat(input.dataset.amt);
-  const price = parseFloat(input.value) || 1;
-  const qty = Math.floor(amt/price);
-  const rowId = input.dataset.rowid;
-  const qtyCell = document.getElementById('qty-'+rowId);
-  if(qtyCell) qtyCell.textContent = qty;
-  updateStopCellForRow(rowId, price);
-}
+      function updateStopCellForRow(rowId, price) {
+        const stopCell = document.getElementById('stop-' + rowId);
+        if (!stopCell) return;
+        const stopLossPct = parseFloat(document.getElementById('stopLossPct').value) || 15;
+        const stopPrice = price * (1 - stopLossPct / 100);
+        stopCell.textContent = inr(stopPrice);
+      }
 
-function updateStopCellForRow(rowId, price){
-  const stopCell = document.getElementById('stop-'+rowId);
-  if(!stopCell) return;
-  const stopLossPct = parseFloat(document.getElementById('stopLossPct').value) || 15;
-  const stopPrice = price * (1 - stopLossPct/100);
-  stopCell.textContent = inr(stopPrice);
-}
+      function refreshAllStopCells() {
+        document.querySelectorAll('.price-input').forEach(function (input) {
+          const price = parseFloat(input.value) || 1;
+          updateStopCellForRow(input.dataset.rowid, price);
+        });
+      }
 
-function refreshAllStopCells(){
-  document.querySelectorAll('.price-input').forEach(function(input){
-    const price = parseFloat(input.value) || 1;
-    updateStopCellForRow(input.dataset.rowid, price);
-  });
-}
+      function buildPortfolio() {
+        const amountInput = document.getElementById('amount');
+        const amount = parseFloat(amountInput.value) || 0;
+        if (amount < 10000) { alert('Enter an amount of at least ₹10,000'); return; }
+        if (selectedSectors.size === 0) { alert('Pick at least one sector'); return; }
 
-function buildPortfolio(){
-  const amountInput = document.getElementById('amount');
-  const amount = parseFloat(amountInput.value) || 0;
-  if(amount < 10000){ alert('Enter an amount of at least ₹10,000'); return; }
-  if(selectedSectors.size === 0){ alert('Pick at least one sector'); return; }
+        const buffer = amount * 0.25;
+        const deployable = amount - buffer;
+        const risk = RISK[selectedRisk];
 
-  const buffer = amount * 0.25;
-  const deployable = amount - buffer;
-  const risk = RISK[selectedRisk];
+        const largeAmt = deployable * risk.large / 100;
+        const midAmt = deployable * risk.mid / 100;
+        const smallAmt = deployable * risk.small / 100;
 
-  const largeAmt = deployable * risk.large/100;
-  const midAmt = deployable * risk.mid/100;
-  const smallAmt = deployable * risk.small/100;
+        const sectorsArr = Array.from(selectedSectors);
+        const perSector = largeAmt / sectorsArr.length;
 
-  const sectorsArr = Array.from(selectedSectors);
-  const perSector = largeAmt / sectorsArr.length;
+        const stopLossPct = parseFloat(document.getElementById('stopLossPct').value) || 15;
+        const driftPct = parseFloat(document.getElementById('driftPct').value) || 5;
+        const cadence = document.getElementById('cadence').value || 'Quarterly';
 
-  const stopLossPct = parseFloat(document.getElementById('stopLossPct').value) || 15;
-  const driftPct = parseFloat(document.getElementById('driftPct').value) || 5;
-  const cadence = document.getElementById('cadence').value || 'Quarterly';
+        let stockRows = '';
+        sectorsArr.forEach(function (key) {
+          const sector = SECTORS[key];
+          const perStock = perSector / sector.stocks.length;
+          sector.stocks.forEach(function (s, idx) {
+            const rowId = key + '-' + idx;
+            stockRows += '' +
+              '<tr>' +
+              '<td><div class="ticker-cell">' + s.t + '</div><div class="name-cell">' + s.n + '</div></td>' +
+              '<td style="color:var(--muted);font-size:12px;">' + sector.name + '</td>' +
+              '<td style="font-family:\'IBM Plex Mono\';">' + inr(perStock) + '</td>' +
+              '<td><input class="price-input" type="number" min="1" value="1000" data-amt="' + perStock + '" data-rowid="' + rowId + '"></td>' +
+              '<td class="qty-cell" id="qty-' + rowId + '">1</td>' +
+              '<td class="stop-cell" id="stop-' + rowId + '">—</td>' +
+              '</tr>';
+          });
+        });
 
-  let stockRows = '';
-  sectorsArr.forEach(function(key){
-    const sector = SECTORS[key];
-    const perStock = perSector / sector.stocks.length;
-    sector.stocks.forEach(function(s, idx){
-      const rowId = key+'-'+idx;
-      stockRows += '' +
-        '<tr>' +
-          '<td><div class="ticker-cell">'+s.t+'</div><div class="name-cell">'+s.n+'</div></td>' +
-          '<td style="color:var(--muted);font-size:12px;">'+sector.name+'</td>' +
-          '<td style="font-family:\'IBM Plex Mono\';">'+inr(perStock)+'</td>' +
-          '<td><input class="price-input" type="number" min="1" value="1000" data-amt="'+perStock+'" data-rowid="'+rowId+'"></td>' +
-          '<td class="qty-cell" id="qty-'+rowId+'">1</td>' +
-          '<td class="stop-cell" id="stop-'+rowId+'">—</td>' +
-        '</tr>';
-    });
-  });
-
-  const resultsBody = document.getElementById('resultsBody');
-  resultsBody.innerHTML =
-    '<div class="results-top">' +
-      '<div class="gauge-wrap">' +
-        buildGauge(25) +
-        '<div class="gauge-label">Capital deployment</div>' +
-      '</div>' +
-      '<div class="split-bars">' +
-        '<div class="split-row">' +
-          '<div class="row-top"><span>Large-cap stocks</span><b>'+inr(largeAmt)+'</b></div>' +
-          '<div class="bar-track"><div class="bar-fill" style="width:'+risk.large+'%;background:var(--amber);"></div></div>' +
-        '</div>' +
-        '<div class="split-row">' +
-          '<div class="row-top"><span>Mid-cap (index/ETF)</span><b>'+inr(midAmt)+'</b></div>' +
-          '<div class="bar-track"><div class="bar-fill" style="width:'+risk.mid+'%;background:var(--teal);"></div></div>' +
-        '</div>' +
-        '<div class="split-row">' +
-          '<div class="row-top"><span>Small-cap (index/ETF)</span><b>'+inr(smallAmt)+'</b></div>' +
-          '<div class="bar-track"><div class="bar-fill" style="width:'+risk.small+'%;background:#6FA8DC;"></div></div>' +
-        '</div>' +
-        '<div class="split-row">' +
-          '<div class="row-top"><span>Buffer (liquid / cash)</span><b>'+inr(buffer)+'</b></div>' +
+        const resultsBody = document.getElementById('resultsBody');
+        resultsBody.innerHTML =
+          '<div class="results-top">' +
+          '<div class="gauge-wrap">' +
+          buildGauge(25) +
+          '<div class="gauge-label">Capital deployment</div>' +
+          '</div>' +
+          '<div class="split-bars">' +
+          '<div class="split-row">' +
+          '<div class="row-top"><span>Large-cap stocks</span><b>' + inr(largeAmt) + '</b></div>' +
+          '<div class="bar-track"><div class="bar-fill" style="width:' + risk.large + '%;background:var(--amber);"></div></div>' +
+          '</div>' +
+          '<div class="split-row">' +
+          '<div class="row-top"><span>Mid-cap (index/ETF)</span><b>' + inr(midAmt) + '</b></div>' +
+          '<div class="bar-track"><div class="bar-fill" style="width:' + risk.mid + '%;background:var(--teal);"></div></div>' +
+          '</div>' +
+          '<div class="split-row">' +
+          '<div class="row-top"><span>Small-cap (index/ETF)</span><b>' + inr(smallAmt) + '</b></div>' +
+          '<div class="bar-track"><div class="bar-fill" style="width:' + risk.small + '%;background:#6FA8DC;"></div></div>' +
+          '</div>' +
+          '<div class="split-row">' +
+          '<div class="row-top"><span>Buffer (liquid / cash)</span><b>' + inr(buffer) + '</b></div>' +
           '<div class="bar-track"><div class="bar-fill" style="width:25%;background:var(--red);"></div></div>' +
-        '</div>' +
-      '</div>' +
-    '</div>' +
-    '<div class="section-title">Large-cap stock picks (illustrative)</div>' +
-    '<table>' +
-      '<thead><tr><th>Stock</th><th>Sector</th><th>Allocated</th><th>Entry price you enter</th><th>Qty</th><th>Stop-loss price</th></tr></thead>' +
-      '<tbody>'+stockRows+'</tbody>' +
-    '</table>' +
-    '<div class="section-title">Diversified sleeves</div>' +
-    '<table><tbody>' +
-      '<tr class="instrument-row"><td><div class="ticker-cell">Nifty Midcap 150 Index Fund/ETF</div></td><td style="font-family:\'IBM Plex Mono\';">'+inr(midAmt)+'</td></tr>' +
-      '<tr class="instrument-row"><td><div class="ticker-cell">Nifty Smallcap 250 Index Fund/ETF</div></td><td style="font-family:\'IBM Plex Mono\';">'+inr(smallAmt)+'</td></tr>' +
-      '<tr class="instrument-row"><td><div class="ticker-cell">Liquid Fund / Savings — Market Buffer</div></td><td style="font-family:\'IBM Plex Mono\';">'+inr(buffer)+'</td></tr>' +
-    '</tbody></table>' +
+          '</div>' +
+          '</div>' +
+          '</div>' +
+          '<div class="section-title">Large-cap stock picks (illustrative)</div>' +
+          '<table>' +
+          '<thead><tr><th>Stock</th><th>Sector</th><th>Allocated</th><th>Entry price you enter</th><th>Qty</th><th>Stop-loss price</th></tr></thead>' +
+          '<tbody>' + stockRows + '</tbody>' +
+          '</table>' +
+          '<div class="section-title">Diversified sleeves</div>' +
+          '<table><tbody>' +
+          '<tr class="instrument-row"><td><div class="ticker-cell">Nifty Midcap 150 Index Fund/ETF</div></td><td style="font-family:\'IBM Plex Mono\';">' + inr(midAmt) + '</td></tr>' +
+          '<tr class="instrument-row"><td><div class="ticker-cell">Nifty Smallcap 250 Index Fund/ETF</div></td><td style="font-family:\'IBM Plex Mono\';">' + inr(smallAmt) + '</td></tr>' +
+          '<tr class="instrument-row"><td><div class="ticker-cell">Liquid Fund / Savings — Market Buffer</div></td><td style="font-family:\'IBM Plex Mono\';">' + inr(buffer) + '</td></tr>' +
+          '</tbody></table>' +
 
-    '<div class="section-title">Stop-loss &amp; rebalancing playbook</div>' +
-    '<table class="rebalance-table"><thead><tr><th>Sleeve</th><th>Target weight</th><th>Rebalance if drift beyond</th></tr></thead><tbody>' +
-      '<tr><td>Large-cap stocks</td><td style="font-family:\'IBM Plex Mono\';">'+risk.large+'%</td><td class="drift-ok" id="driftLabel1">±'+driftPct+' pp</td></tr>' +
-      '<tr><td>Mid-cap index/ETF</td><td style="font-family:\'IBM Plex Mono\';">'+risk.mid+'%</td><td class="drift-ok" id="driftLabel2">±'+driftPct+' pp</td></tr>' +
-      '<tr><td>Small-cap index/ETF</td><td style="font-family:\'IBM Plex Mono\';">'+risk.small+'%</td><td class="drift-ok" id="driftLabel3">±'+driftPct+' pp</td></tr>' +
-      '<tr><td>Buffer (liquid/cash)</td><td style="font-family:\'IBM Plex Mono\';">25%</td><td class="drift-ok" id="driftLabel4">±'+driftPct+' pp</td></tr>' +
-    '</tbody></table>' +
+          '<div class="section-title">Stop-loss &amp; rebalancing playbook</div>' +
+          '<table class="rebalance-table"><thead><tr><th>Sleeve</th><th>Target weight</th><th>Rebalance if drift beyond</th></tr></thead><tbody>' +
+          '<tr><td>Large-cap stocks</td><td style="font-family:\'IBM Plex Mono\';">' + risk.large + '%</td><td class="drift-ok" id="driftLabel1">±' + driftPct + ' pp</td></tr>' +
+          '<tr><td>Mid-cap index/ETF</td><td style="font-family:\'IBM Plex Mono\';">' + risk.mid + '%</td><td class="drift-ok" id="driftLabel2">±' + driftPct + ' pp</td></tr>' +
+          '<tr><td>Small-cap index/ETF</td><td style="font-family:\'IBM Plex Mono\';">' + risk.small + '%</td><td class="drift-ok" id="driftLabel3">±' + driftPct + ' pp</td></tr>' +
+          '<tr><td>Buffer (liquid/cash)</td><td style="font-family:\'IBM Plex Mono\';">25%</td><td class="drift-ok" id="driftLabel4">±' + driftPct + ' pp</td></tr>' +
+          '</tbody></table>' +
 
-    '<div class="playbook" id="playbookText"></div>';
+          '<div class="playbook" id="playbookText"></div>';
 
-  document.getElementById('emptyState').style.display = 'none';
-  document.getElementById('resultsBody').style.display = 'block';
-  document.getElementById('aiBtn').style.display = 'block';
+        document.getElementById('emptyState').style.display = 'none';
+        document.getElementById('resultsBody').style.display = 'block';
+        document.getElementById('aiBtn').style.display = 'block';
 
-  // Auto-switch to portfolio tab
-  switchMainTab('tabPortfolio', document.getElementById('navPortfolioBtn'));
+        // Auto-switch to portfolio tab
+        switchMainTab('tabPortfolio', document.getElementById('navPortfolioBtn'));
 
-  // set initial quantities and stop-loss prices
-  resultsBody.querySelectorAll('.price-input').forEach(updateQtyForRow);
+        // set initial quantities and stop-loss prices
+        resultsBody.querySelectorAll('.price-input').forEach(updateQtyForRow);
 
-  renderPlaybook(stopLossPct, driftPct, cadence);
+        renderPlaybook(stopLossPct, driftPct, cadence);
 
-  window.lastBuild = {
-    amount: amount, buffer: buffer, deployable: deployable,
-    risk: selectedRisk, sectorsArr: sectorsArr,
-    largeAmt: largeAmt, midAmt: midAmt, smallAmt: smallAmt,
-    stopLossPct: stopLossPct, driftPct: driftPct, cadence: cadence
-  };
-}
+        window.lastBuild = {
+          amount: amount, buffer: buffer, deployable: deployable,
+          risk: selectedRisk, sectorsArr: sectorsArr,
+          largeAmt: largeAmt, midAmt: midAmt, smallAmt: smallAmt,
+          stopLossPct: stopLossPct, driftPct: driftPct, cadence: cadence
+        };
+      }
 
-function renderPlaybook(stopLossPct, driftPct, cadence){
-  const el = document.getElementById('playbookText');
-  if(!el) return;
-  el.innerHTML =
-    '<b>Position rule:</b> if any stock falls more than '+stopLossPct+'% below the entry price you recorded, treat it as a decision point — trim or exit rather than "wait and see." The stop-loss price for each stock is shown in the table above and updates as you edit the entry price.<br><br>' +
-    '<b>Rebalancing rule:</b> review the portfolio '+cadence.toLowerCase()+'. If any sleeve\'s actual weight has drifted more than '+driftPct+' percentage points from its target above, trim the overweight sleeve and top up the underweight one back toward target.<br><br>' +
-    '<b>Buffer rule:</b> the buffer is not idle cash to forget about — deploy it in stages (e.g. one-third at a time) if large-cap positions fall further after your stop-loss review, rather than as a single lump sum. Replenish the buffer by trimming a position back to target weight after a strong run-up.<br><br>' +
-    'These are rules you set and follow yourself — the app does not place trades, monitor prices, or execute anything automatically. It has no way to prevent a loss; the discipline of applying a stop-loss and rebalancing consistently is what limits how large a loss can get.';
-}
+      function renderPlaybook(stopLossPct, driftPct, cadence) {
+        const el = document.getElementById('playbookText');
+        if (!el) return;
+        el.innerHTML =
+          '<b>Position rule:</b> if any stock falls more than ' + stopLossPct + '% below the entry price you recorded, treat it as a decision point — trim or exit rather than "wait and see." The stop-loss price for each stock is shown in the table above and updates as you edit the entry price.<br><br>' +
+          '<b>Rebalancing rule:</b> review the portfolio ' + cadence.toLowerCase() + '. If any sleeve\'s actual weight has drifted more than ' + driftPct + ' percentage points from its target above, trim the overweight sleeve and top up the underweight one back toward target.<br><br>' +
+          '<b>Buffer rule:</b> the buffer is not idle cash to forget about — deploy it in stages (e.g. one-third at a time) if large-cap positions fall further after your stop-loss review, rather than as a single lump sum. Replenish the buffer by trimming a position back to target weight after a strong run-up.<br><br>' +
+          'These are rules you set and follow yourself — the app does not place trades, monitor prices, or execute anything automatically. It has no way to prevent a loss; the discipline of applying a stop-loss and rebalancing consistently is what limits how large a loss can get.';
+      }
 
-// Event delegation for dynamically-created price inputs — avoids relying on inline handlers
-document.getElementById('resultsBody').addEventListener('input', function(e){
-  if(e.target.classList.contains('price-input')){
-    updateQtyForRow(e.target);
-  }
-});
-
-// AI Tab Switcher
-function switchAITab(tabId, btn) {
-    document.querySelectorAll('.ai-tab-content').forEach(c => c.classList.remove('active'));
-    document.querySelectorAll('.ai-tab-btn').forEach(b => b.classList.remove('active'));
-    
-    document.getElementById(tabId).classList.add('active');
-    btn.classList.add('active');
-}
-
-// Main Sidebar Tab Switcher
-function switchMainTab(tabId, btn) {
-    document.querySelectorAll('.main-tab-content').forEach(c => c.classList.remove('active'));
-    document.querySelectorAll('.sidebar-btn').forEach(b => b.classList.remove('active'));
-    
-    document.getElementById(tabId).classList.add('active');
-    btn.classList.add('active');
-}
-
-// Build button handler
-document.getElementById('buildBtn').addEventListener('click', buildPortfolio);
-
-document.getElementById('stopLossPct').addEventListener('input', function(){
-  if(document.getElementById('resultsBody').style.display === 'block'){
-    refreshAllStopCells();
-  }
-});
-
-// ---- Saved portfolios: localStorage-backed save / compare / history ----
-const STORAGE_KEY = 'nivesh_portfolios_v1';
-let activePortfolioId = null;
-let compareSelection = new Set();
-
-function escapeHtml(str){
-  return String(str).replace(/[&<>"']/g, function(c){
-    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
-  });
-}
-
-let appPortfolios = [];
-
-function loadPortfolios(){
-  return appPortfolios;
-}
-
-function savePortfolios(list, specificPortfolio = null){
-  appPortfolios = list;
-  if(specificPortfolio) {
-      const token = localStorage.getItem('nivesh_token');
-      if(!token) return showAuth();
-      fetch('/api/portfolios', {
-          method: 'POST',
-          headers: {'Content-Type':'application/json', 'Authorization': `Bearer ${token}`},
-          body: JSON.stringify(specificPortfolio)
-      }).catch(e => console.error("Failed to save to cloud", e));
-  }
-}
-
-function showAuth() {
-    document.getElementById('authOverlay').style.display = 'flex';
-}
-function hideAuth() {
-    document.getElementById('authOverlay').style.display = 'none';
-}
-
-async function fetchPortfoliosFromCloud() {
-    const token = localStorage.getItem('nivesh_token');
-    if(!token) return showAuth();
-    
-    try {
-        const payloadStr = atob(token.split('.')[1]);
-        const payload = JSON.parse(payloadStr);
-        if(payload && payload.sub) {
-            const el = document.getElementById('welcomeUser');
-            if(el) {
-                el.textContent = 'Welcome, ' + payload.sub;
-                el.style.display = 'block';
-            }
-            const lg = document.getElementById('logoutBtn');
-            if(lg) lg.style.display = 'flex';
+      // Event delegation for dynamically-created price inputs — avoids relying on inline handlers
+      document.getElementById('resultsBody').addEventListener('input', function (e) {
+        if (e.target.classList.contains('price-input')) {
+          updateQtyForRow(e.target);
         }
-    } catch(e) {}
-    
-    try {
-        const resp = await fetch('/api/portfolios', { headers: { 'Authorization': `Bearer ${token}` } });
-        if(resp.status === 401) {
-            localStorage.removeItem('nivesh_token');
-            return showAuth();
+      });
+
+      // AI Tab Switcher
+      function switchAITab(tabId, btn) {
+        document.querySelectorAll('.ai-tab-content').forEach(c => c.classList.remove('active'));
+        document.querySelectorAll('.ai-tab-btn').forEach(b => b.classList.remove('active'));
+
+        document.getElementById(tabId).classList.add('active');
+        btn.classList.add('active');
+      }
+
+      // Main Sidebar Tab Switcher
+      function switchMainTab(tabId, btn) {
+        document.querySelectorAll('.main-tab-content').forEach(c => c.classList.remove('active'));
+        document.querySelectorAll('.sidebar-btn').forEach(b => b.classList.remove('active'));
+
+        document.getElementById(tabId).classList.add('active');
+        btn.classList.add('active');
+      }
+
+      // Build button handler
+      document.getElementById('buildBtn').addEventListener('click', buildPortfolio);
+
+      document.getElementById('stopLossPct').addEventListener('input', function () {
+        if (document.getElementById('resultsBody').style.display === 'block') {
+          refreshAllStopCells();
         }
-        appPortfolios = await resp.json();
-        
-        hideAuth();
+      });
+
+      function getStorageKey() {
+        const email = window.currentUserEmail || '';
+        return email ? ('nivesh_portfolios_' + email.replace(/[^a-zA-Z0-9]/g, '_')) : 'nivesh_portfolios_v1';
+      }
+      let activePortfolioId = null;
+      let compareSelection = new Set();
+
+      function escapeHtml(str) {
+        return String(str).replace(/[&<>"']/g, function (c) {
+          return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+        });
+      }
+
+      function loadPortfolios() {
+        try { return JSON.parse(localStorage.getItem(getStorageKey()) || '[]'); }
+        catch (e) { return []; }
+      }
+      function savePortfolios(list) {
+        try { localStorage.setItem(getStorageKey(), JSON.stringify(list)); }
+        catch (e) { alert('Could not save — your browser storage may be full or disabled.'); }
+      }
+
+      function snapshotStocksFromDOM() {
+        const stocks = [];
+        document.querySelectorAll('.price-input').forEach(function (input) {
+          const rowId = input.dataset.rowid;
+          const price = parseFloat(input.value) || 0;
+          const amt = parseFloat(input.dataset.amt) || 0;
+          const qty = Math.floor(amt / (price || 1));
+          const tr = input.closest('tr');
+          const ticker = tr.querySelector('.ticker-cell').textContent;
+          const sector = tr.children[1].textContent;
+          stocks.push({ rowId: rowId, ticker: ticker, sector: sector, allocated: amt, price: price, qty: qty });
+        });
+        return stocks;
+      }
+
+      function currentSnapshot() {
+        if (!window.lastBuild) return null;
+        const lb = window.lastBuild;
+        return {
+          at: new Date().toISOString(),
+          amount: lb.amount, risk: lb.risk, sectors: lb.sectorsArr.slice(),
+          buffer: lb.buffer, largeAmt: lb.largeAmt, midAmt: lb.midAmt, smallAmt: lb.smallAmt,
+          stopLossPct: lb.stopLossPct, driftPct: lb.driftPct, cadence: lb.cadence,
+          stocks: snapshotStocksFromDOM()
+        };
+      }
+
+      function totalValueOf(snap) {
+        const stocksVal = snap.stocks.reduce(function (s, x) { return s + x.qty * x.price; }, 0);
+        return stocksVal + snap.midAmt + snap.smallAmt + snap.buffer;
+      }
+
+      function updateActiveLabel() {
+        const el = document.getElementById('activeLabel');
+        const updateBtn = document.getElementById('updateBtn');
+        if (activePortfolioId) {
+          const p = loadPortfolios().find(function (x) { return x.id === activePortfolioId; });
+          el.textContent = p ? ('Currently editing: ' + p.name + ' — "Update loaded portfolio" logs a new entry to it; changing the name and clicking "Save as new" branches off a copy instead.') : '';
+          updateBtn.style.display = 'inline-block';
+        } else {
+          el.textContent = 'Not currently editing a saved portfolio — "Save as new" will create one.';
+          updateBtn.style.display = 'none';
+        }
+      }
+
+      function renderSavedList() {
+        const list = loadPortfolios();
+        const emptyEl = document.getElementById('savedEmptyState');
+        const table = document.getElementById('savedTable');
+        const body = document.getElementById('savedListBody');
+        const compareBtn = document.getElementById('compareBtn');
+        if (list.length === 0) {
+          emptyEl.style.display = 'block'; table.style.display = 'none'; compareBtn.style.display = 'none';
+          return;
+        }
+        emptyEl.style.display = 'none'; table.style.display = '';
+        body.innerHTML = list.map(function (p) {
+          const latest = p.history[p.history.length - 1];
+          const checked = compareSelection.has(p.id) ? 'checked' : '';
+          return '<tr>' +
+            '<td><input type="checkbox" data-compare-id="' + p.id + '" ' + checked + '></td>' +
+            '<td>' + escapeHtml(p.name) + '</td>' +
+            '<td style="text-transform:capitalize;">' + latest.risk + '</td>' +
+            '<td style="font-family:\'IBM Plex Mono\';">' + inr(latest.amount) + '</td>' +
+            '<td>' + p.history.length + '</td>' +
+            '<td style="color:var(--muted);font-size:11px;">' + new Date(latest.at).toLocaleString('en-IN') + '</td>' +
+            '<td>' +
+            '<button class="mini-btn-ghost" data-action="load" data-id="' + p.id + '">Load</button>' +
+            '<button class="mini-btn-ghost" data-action="history" data-id="' + p.id + '">History</button>' +
+            '<button class="mini-btn-ghost" data-action="delete" data-id="' + p.id + '">Delete</button>' +
+            '</td>' +
+            '</tr>';
+        }).join('');
+        compareBtn.style.display = compareSelection.size === 2 ? 'inline-block' : 'none';
+      }
+      window.renderSavedList = renderSavedList;
+
+      function loadPortfolio(id) {
+        const list = loadPortfolios();
+        const p = list.find(function (x) { return x.id === id; });
+        if (!p) return;
+        const latest = p.history[p.history.length - 1];
+        document.getElementById('amount').value = latest.amount;
+        selectedRisk = latest.risk;
+        document.querySelectorAll('.risk-btn').forEach(function (b) {
+          b.classList.toggle('active', b.dataset.risk === latest.risk);
+        });
+        selectedSectors = new Set(latest.sectors);
+        document.querySelectorAll('#sectorGrid .chip').forEach(function (chip) {
+          chip.classList.toggle('active', selectedSectors.has(chip.dataset.key));
+        });
+        document.getElementById('stopLossPct').value = latest.stopLossPct;
+        document.getElementById('driftPct').value = latest.driftPct;
+        document.getElementById('cadence').value = latest.cadence;
+
+        buildPortfolio();
+
+        latest.stocks.forEach(function (s) {
+          const input = document.querySelector('.price-input[data-rowid="' + s.rowId + '"]');
+          if (input) { input.value = s.price; updateQtyForRow(input); }
+        });
+
+        activePortfolioId = id;
+        document.getElementById('snapshotName').value = p.name;
+        updateActiveLabel();
+        document.getElementById('compareOutput').innerHTML = '';
+        document.getElementById('historyOutput').innerHTML = '';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+
+      function deletePortfolio(id) {
+        if (!confirm('Delete this saved portfolio? This cannot be undone.')) return;
+        const list = loadPortfolios().filter(function (p) { return p.id !== id; });
+        savePortfolios(list);
+        if (activePortfolioId === id) { activePortfolioId = null; updateActiveLabel(); }
+        compareSelection.delete(id);
+        renderSavedList();
+      }
+
+      function compareCard(name, snap) {
+        const totalVal = totalValueOf(snap);
+        const sectorNames = snap.sectors.map(function (k) { return SECTORS[k] ? SECTORS[k].name : k; }).join(', ');
+        return '<div class="compare-card">' +
+          '<h3>' + escapeHtml(name) + '</h3>' +
+          '<div class="compare-line"><span>Amount</span><b>' + inr(snap.amount) + '</b></div>' +
+          '<div class="compare-line"><span>Risk profile</span><b style="text-transform:capitalize;">' + snap.risk + '</b></div>' +
+          '<div class="compare-line"><span>Sectors</span><b style="font-family:Inter;font-weight:400;">' + sectorNames + '</b></div>' +
+          '<div class="compare-line"><span>Buffer</span><b>' + inr(snap.buffer) + '</b></div>' +
+          '<div class="compare-line"><span>Large-cap</span><b>' + inr(snap.largeAmt) + '</b></div>' +
+          '<div class="compare-line"><span>Mid-cap</span><b>' + inr(snap.midAmt) + '</b></div>' +
+          '<div class="compare-line"><span>Small-cap</span><b>' + inr(snap.smallAmt) + '</b></div>' +
+          '<div class="compare-line"><span>Logged value</span><b>' + inr(totalVal) + '</b></div>' +
+          '</div>';
+      }
+
+      function renderCompare() {
+        const ids = Array.from(compareSelection);
+        if (ids.length !== 2) return;
+        const list = loadPortfolios();
+        const a = list.find(function (x) { return x.id === ids[0]; });
+        const b = list.find(function (x) { return x.id === ids[1]; });
+        if (!a || !b) return;
+        const la = a.history[a.history.length - 1];
+        const lb = b.history[b.history.length - 1];
+        document.getElementById('compareOutput').innerHTML =
+          '<div class="section-title">Comparing ' + escapeHtml(a.name) + ' vs ' + escapeHtml(b.name) + '</div>' +
+          '<div class="compare-grid">' + compareCard(a.name, la) + compareCard(b.name, lb) + '</div>';
+        document.getElementById('compareOutput').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+
+      function renderHistory(id) {
+        const list = loadPortfolios();
+        const p = list.find(function (x) { return x.id === id; });
+        if (!p) return;
+        const first = p.history[0];
+        const firstVal = totalValueOf(first);
+        const rows = p.history.map(function (snap, idx) {
+          const val = totalValueOf(snap);
+          const deltaPct = firstVal ? ((val - firstVal) / firstVal * 100) : 0;
+          const cls = deltaPct > 0.05 ? 'delta-up' : (deltaPct < -0.05 ? 'delta-down' : 'delta-flat');
+          const sign = deltaPct > 0 ? '+' : '';
+          return '<tr>' +
+            '<td style="color:var(--muted);font-size:11px;">' + new Date(snap.at).toLocaleString('en-IN') + '</td>' +
+            '<td style="font-family:\'IBM Plex Mono\';">' + inr(val) + '</td>' +
+            '<td class="' + cls + '">' + (idx === 0 ? '—' : sign + deltaPct.toFixed(1) + '%') + '</td>' +
+            '</tr>';
+        }).join('');
+        document.getElementById('historyOutput').innerHTML =
+          '<div class="section-title">History — ' + escapeHtml(p.name) + '</div>' +
+          '<table><thead><tr><th>Logged at</th><th>Value at entered prices</th><th>Change vs first log</th></tr></thead><tbody>' + rows + '</tbody></table>' +
+          '<div class="hint">This tracks the prices you manually entered and saved each time — it is not a live valuation. Update the portfolio after checking real prices to build an accurate history.</div>';
+        document.getElementById('historyOutput').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+
+      document.getElementById('saveNewBtn').addEventListener('click', function () {
+        const snap = currentSnapshot();
+        if (!snap) { alert('Build a portfolio first.'); return; }
+        const nameInput = document.getElementById('snapshotName');
+        const name = nameInput.value.trim() || ('Portfolio ' + (loadPortfolios().length + 1));
+        const list = loadPortfolios();
+        const id = 'p_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
+        list.push({ id: id, name: name, createdAt: snap.at, history: [snap] });
+        savePortfolios(list);
+        activePortfolioId = id;
+        nameInput.value = name;
         renderSavedList();
         updateActiveLabel();
-        
-        // Initial Tab Routing
-        if(appPortfolios.length > 0) {
-            appPortfolios.sort((a,b) => {
-                const timeA = new Date(a.history[a.history.length-1].at).getTime();
-                const timeB = new Date(b.history[b.history.length-1].at).getTime();
-                return timeB - timeA;
-            });
-            loadPortfolio(appPortfolios[0].id);
-        } else {
-            switchMainTab('tabModel', document.getElementById('navModelBtn'));
-        }
-        
-    } catch(e) {
-        console.error("Failed to fetch portfolios", e);
-        showAuth();
-    }
-}
-
-function snapshotStocksFromDOM(){
-  const stocks = [];
-  document.querySelectorAll('.price-input').forEach(function(input){
-    const rowId = input.dataset.rowid;
-    const price = parseFloat(input.value) || 0;
-    const amt = parseFloat(input.dataset.amt) || 0;
-    const qty = Math.floor(amt/(price||1));
-    const tr = input.closest('tr');
-    const ticker = tr.querySelector('.ticker-cell').textContent;
-    const sector = tr.children[1].textContent;
-    stocks.push({rowId:rowId, ticker:ticker, sector:sector, allocated:amt, price:price, qty:qty});
-  });
-  return stocks;
-}
-
-function currentSnapshot(){
-  if(!window.lastBuild) return null;
-  const lb = window.lastBuild;
-  return {
-    at: new Date().toISOString(),
-    amount: lb.amount, risk: lb.risk, sectors: lb.sectorsArr.slice(),
-    buffer: lb.buffer, largeAmt: lb.largeAmt, midAmt: lb.midAmt, smallAmt: lb.smallAmt,
-    stopLossPct: lb.stopLossPct, driftPct: lb.driftPct, cadence: lb.cadence,
-    stocks: snapshotStocksFromDOM()
-  };
-}
-
-function totalValueOf(snap){
-  const stocksVal = snap.stocks.reduce(function(s,x){ return s + x.qty*x.price; }, 0);
-  return stocksVal + snap.midAmt + snap.smallAmt + snap.buffer;
-}
-
-function updateActiveLabel(){
-  const el = document.getElementById('activeLabel');
-  const updateBtn = document.getElementById('updateBtn');
-  if(activePortfolioId){
-    const p = loadPortfolios().find(function(x){ return x.id===activePortfolioId; });
-    el.textContent = p ? ('Currently editing: '+p.name+' — "Update loaded portfolio" logs a new entry to it; changing the name and clicking "Save as new" branches off a copy instead.') : '';
-    updateBtn.style.display = 'inline-block';
-  } else {
-    el.textContent = 'Not currently editing a saved portfolio — "Save as new" will create one.';
-    updateBtn.style.display = 'none';
-  }
-}
-
-function renderSavedList(){
-  const list = loadPortfolios();
-  const emptyEl = document.getElementById('savedEmptyState');
-  const table = document.getElementById('savedTable');
-  const body = document.getElementById('savedListBody');
-  const compareBtn = document.getElementById('compareBtn');
-  if(list.length === 0){
-    emptyEl.style.display = 'block'; table.style.display = 'none'; compareBtn.style.display = 'none';
-    return;
-  }
-  emptyEl.style.display = 'none'; table.style.display = '';
-  body.innerHTML = list.map(function(p){
-    const latest = p.history[p.history.length-1];
-    const checked = compareSelection.has(p.id) ? 'checked' : '';
-    return '<tr>' +
-      '<td><input type="checkbox" data-compare-id="'+p.id+'" '+checked+'></td>' +
-      '<td>'+escapeHtml(p.name)+'</td>' +
-      '<td style="text-transform:capitalize;">'+latest.risk+'</td>' +
-      '<td style="font-family:\'IBM Plex Mono\';">'+inr(latest.amount)+'</td>' +
-      '<td>'+p.history.length+'</td>' +
-      '<td style="color:var(--muted);font-size:11px;">'+new Date(latest.at).toLocaleString('en-IN')+'</td>' +
-      '<td>' +
-        '<button class="mini-btn-ghost" data-action="load" data-id="'+p.id+'">Load</button>' +
-        '<button class="mini-btn-ghost" data-action="history" data-id="'+p.id+'">History</button>' +
-        '<button class="mini-btn-ghost" data-action="delete" data-id="'+p.id+'">Delete</button>' +
-      '</td>' +
-    '</tr>';
-  }).join('');
-  compareBtn.style.display = compareSelection.size === 2 ? 'inline-block' : 'none';
-}
-
-function loadPortfolio(id){
-  const list = loadPortfolios();
-  const p = list.find(function(x){ return x.id===id; });
-  if(!p) return;
-  const latest = p.history[p.history.length-1];
-  document.getElementById('amount').value = latest.amount;
-  selectedRisk = latest.risk;
-  document.querySelectorAll('.risk-btn').forEach(function(b){
-    b.classList.toggle('active', b.dataset.risk===latest.risk);
-  });
-  selectedSectors = new Set(latest.sectors);
-  document.querySelectorAll('#sectorGrid .chip').forEach(function(chip){
-    chip.classList.toggle('active', selectedSectors.has(chip.dataset.key));
-  });
-  document.getElementById('stopLossPct').value = latest.stopLossPct;
-  document.getElementById('driftPct').value = latest.driftPct;
-  document.getElementById('cadence').value = latest.cadence;
-
-  buildPortfolio();
-
-  latest.stocks.forEach(function(s){
-    const input = document.querySelector('.price-input[data-rowid="'+s.rowId+'"]');
-    if(input){ input.value = s.price; updateQtyForRow(input); }
-  });
-
-  activePortfolioId = id;
-  document.getElementById('snapshotName').value = p.name;
-  updateActiveLabel();
-  document.getElementById('compareOutput').innerHTML = '';
-  document.getElementById('historyOutput').innerHTML = '';
-  window.scrollTo({top:0, behavior:'smooth'});
-}
-
-function deletePortfolio(id){
-  if(!confirm('Delete this saved portfolio? This cannot be undone.')) return;
-  const list = loadPortfolios().filter(function(p){ return p.id!==id; });
-  savePortfolios(list);
-  if(activePortfolioId===id){ activePortfolioId = null; updateActiveLabel(); }
-  compareSelection.delete(id);
-  renderSavedList();
-}
-
-function compareCard(name, snap){
-  const totalVal = totalValueOf(snap);
-  const sectorNames = snap.sectors.map(function(k){ return SECTORS[k] ? SECTORS[k].name : k; }).join(', ');
-  return '<div class="compare-card">' +
-    '<h3>'+escapeHtml(name)+'</h3>' +
-    '<div class="compare-line"><span>Amount</span><b>'+inr(snap.amount)+'</b></div>' +
-    '<div class="compare-line"><span>Risk profile</span><b style="text-transform:capitalize;">'+snap.risk+'</b></div>' +
-    '<div class="compare-line"><span>Sectors</span><b style="font-family:Inter;font-weight:400;">'+sectorNames+'</b></div>' +
-    '<div class="compare-line"><span>Buffer</span><b>'+inr(snap.buffer)+'</b></div>' +
-    '<div class="compare-line"><span>Large-cap</span><b>'+inr(snap.largeAmt)+'</b></div>' +
-    '<div class="compare-line"><span>Mid-cap</span><b>'+inr(snap.midAmt)+'</b></div>' +
-    '<div class="compare-line"><span>Small-cap</span><b>'+inr(snap.smallAmt)+'</b></div>' +
-    '<div class="compare-line"><span>Logged value</span><b>'+inr(totalVal)+'</b></div>' +
-  '</div>';
-}
-
-function renderCompare(){
-  const ids = Array.from(compareSelection);
-  if(ids.length !== 2) return;
-  const list = loadPortfolios();
-  const a = list.find(function(x){ return x.id===ids[0]; });
-  const b = list.find(function(x){ return x.id===ids[1]; });
-  if(!a || !b) return;
-  const la = a.history[a.history.length-1];
-  const lb = b.history[b.history.length-1];
-  document.getElementById('compareOutput').innerHTML =
-    '<div class="section-title">Comparing '+escapeHtml(a.name)+' vs '+escapeHtml(b.name)+'</div>' +
-    '<div class="compare-grid">' + compareCard(a.name, la) + compareCard(b.name, lb) + '</div>';
-  document.getElementById('compareOutput').scrollIntoView({behavior:'smooth', block:'nearest'});
-}
-
-function renderHistory(id){
-  const list = loadPortfolios();
-  const p = list.find(function(x){ return x.id===id; });
-  if(!p) return;
-  const first = p.history[0];
-  const firstVal = totalValueOf(first);
-  const rows = p.history.map(function(snap, idx){
-    const val = totalValueOf(snap);
-    const deltaPct = firstVal ? ((val-firstVal)/firstVal*100) : 0;
-    const cls = deltaPct>0.05 ? 'delta-up' : (deltaPct<-0.05 ? 'delta-down' : 'delta-flat');
-    const sign = deltaPct>0 ? '+' : '';
-    return '<tr>' +
-      '<td style="color:var(--muted);font-size:11px;">'+new Date(snap.at).toLocaleString('en-IN')+'</td>' +
-      '<td style="font-family:\'IBM Plex Mono\';">'+inr(val)+'</td>' +
-      '<td class="'+cls+'">'+(idx===0 ? '—' : sign+deltaPct.toFixed(1)+'%')+'</td>' +
-    '</tr>';
-  }).join('');
-  document.getElementById('historyOutput').innerHTML =
-    '<div class="section-title">History — '+escapeHtml(p.name)+'</div>' +
-    '<table><thead><tr><th>Logged at</th><th>Value at entered prices</th><th>Change vs first log</th></tr></thead><tbody>'+rows+'</tbody></table>' +
-    '<div class="hint">This tracks the prices you manually entered and saved each time — it is not a live valuation. Update the portfolio after checking real prices to build an accurate history.</div>';
-  document.getElementById('historyOutput').scrollIntoView({behavior:'smooth', block:'nearest'});
-}
-
-document.getElementById('saveNewBtn').addEventListener('click', function(){
-  const snap = currentSnapshot();
-  if(!snap){ alert('Build a portfolio first.'); return; }
-  const nameInput = document.getElementById('snapshotName');
-  const name = nameInput.value.trim() || ('Portfolio ' + (loadPortfolios().length+1));
-  const list = loadPortfolios();
-  const id = 'p_' + Date.now() + '_' + Math.floor(Math.random()*1000);
-  const newP = { id:id, name:name, createdAt:snap.at, history:[snap] };
-  list.push(newP);
-  savePortfolios(list, newP);
-  activePortfolioId = id;
-  nameInput.value = name;
-  renderSavedList();
-  updateActiveLabel();
-});
-
-document.getElementById('updateBtn').addEventListener('click', function(){
-  if(!activePortfolioId) return;
-  const snap = currentSnapshot();
-  if(!snap) return;
-  const list = loadPortfolios();
-  const p = list.find(function(x){ return x.id===activePortfolioId; });
-  if(!p) return;
-  p.history.push(snap);
-  savePortfolios(list);
-  renderSavedList();
-  updateActiveLabel();
-});
-
-document.getElementById('compareBtn').addEventListener('click', renderCompare);
-
-document.getElementById('savedListBody').addEventListener('click', function(e){
-  const btn = e.target.closest('button[data-action]');
-  if(!btn) return;
-  const id = btn.dataset.id;
-  const action = btn.dataset.action;
-  if(action==='load') loadPortfolio(id);
-  if(action==='history') renderHistory(id);
-  if(action==='delete') deletePortfolio(id);
-});
-
-document.getElementById('savedListBody').addEventListener('change', function(e){
-  if(e.target.matches('input[type=checkbox][data-compare-id]')){
-    const id = e.target.dataset.compareId;
-    if(e.target.checked){
-      if(compareSelection.size >= 2){ e.target.checked = false; alert('Pick only two to compare.'); return; }
-      compareSelection.add(id);
-    } else {
-      compareSelection.delete(id);
-    }
-    document.getElementById('compareBtn').style.display = compareSelection.size === 2 ? 'inline-block' : 'none';
-  }
-});
-
-document.getElementById('aiBtn').addEventListener('click', async function(){
-  if(!window.lastBuild){
-      alert("Please build the portfolio first to select amount and sectors.");
-      return;
-  }
-  
-  const aiResults = document.getElementById('aiResults');
-  const aiContent = document.getElementById('aiContent');
-  const aiLoading = document.getElementById('aiLoading');
-  
-  // Auto-switch to AI Insights tab
-  switchMainTab('tabInsights', document.getElementById('navInsightsBtn'));
-  
-  aiLoading.style.display = 'block';
-  aiContent.style.display = 'none';
-  document.getElementById('aiLoadingText').innerHTML = 'Fetching live market prices...';
-  
-  try {
-      // 1. Fetch Live Market Data immediately
-      const stocks = snapshotStocksFromDOM();
-      if(stocks.length > 0) {
-          const tickers = stocks.map(s => s.ticker + '.NS').join(',');
-          try {
-              const marketResp = await fetch(`/api/market-data?tickers=${tickers}`, { headers: { 'Authorization': `Bearer ${localStorage.getItem('nivesh_token')}` } });
-              const marketData = await marketResp.json();
-              if(marketData.data) {
-                  stocks.forEach(s => {
-                      const data = marketData.data[s.ticker + '.NS'];
-                      if(data && data.price > 0) {
-                          const input = document.querySelector(`.price-input[data-rowid="${s.rowId}"]`);
-                          if(input) {
-                              input.value = data.price.toFixed(2);
-                              updateQtyForRow(input);
-                          }
-                      }
-                  });
-              }
-          } catch (marketErr) {
-              console.error("Market data fetch failed:", marketErr);
-          }
-      }
-      
-      // 2. Fetch AI Predictions
-      document.getElementById('aiLoadingText').innerHTML = 'Market data updated! Fetching AI predictions... (this might take a few seconds)';
-      
-      const payload = {
-          amount: window.lastBuild.amount,
-          risk: window.lastBuild.risk,
-          sectors: window.lastBuild.sectorsArr.map(k => SECTORS[k].name)
-      };
-      
-      const aiResponse = await fetch('/api/ai-predict', {
-          method: 'POST',
-          headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('nivesh_token')}`},
-          body: JSON.stringify(payload)
       });
-      
-      const aiData = await aiResponse.json();
-      
-      if(aiData.error) throw new Error(aiData.error);
-      
-      document.getElementById('aiMarketText').innerHTML = escapeHtml(aiData.market_analysis).replace(/\n/g, '<br>');
-      document.getElementById('aiCorporateText').innerHTML = escapeHtml(aiData.corporate_guidance).replace(/\n/g, '<br>');
-      document.getElementById('aiPredictionText').innerHTML = escapeHtml(aiData.predictions).replace(/\n/g, '<br>');
-      
-      aiLoading.style.display = 'none';
-      aiContent.style.display = 'block';
-      
-  } catch(err) {
-      document.getElementById('aiLoadingText').innerHTML = '<span style="color:var(--red);">Error: ' + escapeHtml(err.message) + '</span>';
-  }
-});
 
-document.getElementById('logoutBtn').addEventListener('click', function(){
-localStorage.removeItem('nivesh_token');
-appPortfolios = [];
-activePortfolioId = null;
-const welEl = document.getElementById('welcomeUser');
-if(welEl) welEl.style.display = 'none';
-const lgBtn = document.getElementById('logoutBtn');
-if(lgBtn) lgBtn.style.display = 'none';
-renderSavedList();
-updateActiveLabel();
-showAuth();
-});
+      document.getElementById('updateBtn').addEventListener('click', function () {
+        if (!activePortfolioId) return;
+        const snap = currentSnapshot();
+        if (!snap) return;
+        const list = loadPortfolios();
+        const p = list.find(function (x) { return x.id === activePortfolioId; });
+        if (!p) return;
+        p.history.push(snap);
+        savePortfolios(list);
+        renderSavedList();
+        updateActiveLabel();
+      });
 
-// REMOVE OLD BOOT LOGIC
-// renderSavedList();
-// updateActiveLabel();
-// const portfolios = loadPortfolios();
-// if(portfolios.length > 0) ... (removed to replace with fetchPortfoliosFromCloud)
+      document.getElementById('compareBtn').addEventListener('click', renderCompare);
 
-// BOOT - Removed from here, moved to after setupFirebase
+      document.getElementById('savedListBody').addEventListener('click', function (e) {
+        const btn = e.target.closest('button[data-action]');
+        if (!btn) return;
+        const id = btn.dataset.id;
+        const action = btn.dataset.action;
+        if (action === 'load') loadPortfolio(id);
+        if (action === 'history') renderHistory(id);
+        if (action === 'delete') deletePortfolio(id);
+      });
 
-// Firebase Auth
+      document.getElementById('savedListBody').addEventListener('change', function (e) {
+        if (e.target.matches('input[type=checkbox][data-compare-id]')) {
+          const id = e.target.dataset.compareId;
+          if (e.target.checked) {
+            if (compareSelection.size >= 2) { e.target.checked = false; alert('Pick only two to compare.'); return; }
+            compareSelection.add(id);
+          } else {
+            compareSelection.delete(id);
+          }
+          document.getElementById('compareBtn').style.display = compareSelection.size === 2 ? 'inline-block' : 'none';
+        }
+      });
 
-let auth;
-let provider;
+      document.getElementById('aiBtn').addEventListener('click', async function () {
+        if (!window.lastBuild) {
+          alert("Please build the portfolio first to select amount and sectors.");
+          return;
+        }
 
-async function setupFirebase() {
-    try {
-        const resp = await fetch('/api/firebase-config');
-        const config = await resp.json();
-        const app = initializeApp(config);
-        auth = getAuth(app);
-        provider = new GoogleAuthProvider();
-        provider.setCustomParameters({ prompt: 'select_account' });
-    } catch(e) {
-        console.error("Failed to load Firebase config", e);
-    }
-}
-await setupFirebase();
-fetchPortfoliosFromCloud();
+        const aiResults = document.getElementById('aiResults');
+        const aiContent = document.getElementById('aiContent');
+        const aiLoading = document.getElementById('aiLoading');
 
-const googleBtn = document.getElementById('googleSignInBtn');
-if(googleBtn) {
-    googleBtn.addEventListener('click', async () => {
-        if(!auth) return;
-        const errEl = document.getElementById('authError');
-        if(errEl) errEl.style.display = 'none';
-        
+        // Auto-switch to AI Insights tab
+        switchMainTab('tabInsights', document.getElementById('navInsightsBtn'));
+
+        aiLoading.style.display = 'block';
+        aiContent.style.display = 'none';
+        document.getElementById('aiLoadingText').innerHTML = 'Fetching live market prices...';
+
         try {
-            const result = await signInWithPopup(auth, provider);
-            if(result && result.user) {
-                const token = await result.user.getIdToken();
-                localStorage.setItem('nivesh_token', token);
-                fetchPortfoliosFromCloud();
+          // 1. Fetch Live Market Data immediately
+          const stocks = snapshotStocksFromDOM();
+          if (stocks.length > 0) {
+            const tickers = stocks.map(s => s.ticker + '.NS').join(',');
+            try {
+              const marketResp = await fetch(`/api/market-data?tickers=${tickers}`);
+              if (marketResp.status === 401) {
+                if (window.showSignedOut) window.showSignedOut();
+                throw new Error("Authentication required. Please sign in.");
+              }
+              const marketData = await marketResp.json();
+              if (marketData.data) {
+                stocks.forEach(s => {
+                  const data = marketData.data[s.ticker + '.NS'];
+                  if (data && data.price > 0) {
+                    const input = document.querySelector(`.price-input[data-rowid="${s.rowId}"]`);
+                    if (input) {
+                      input.value = data.price.toFixed(2);
+                      updateQtyForRow(input);
+                    }
+                  }
+                });
+              }
+            } catch (marketErr) {
+              console.error("Market data fetch failed:", marketErr);
+              if (marketErr.message.includes("Authentication required")) throw marketErr;
             }
-        } catch (error) {
-            console.error("Popup Error:", error);
-            if(errEl) {
-                errEl.textContent = "Google Sign-In Error: " + error.message;
-                errEl.style.display = 'block';
-            }
-        }
-    });
-}
+          }
 
-const quickBtn = document.getElementById('quickLoginBtn');
-if(quickBtn) {
-    quickBtn.addEventListener('click', () => {
-        const emailInput = document.getElementById('quickEmailInput');
-        const email = emailInput ? emailInput.value.trim() : '';
-        if(!email) {
-            const errEl = document.getElementById('authError');
-            if(errEl) {
-                errEl.textContent = "Please enter an email address.";
-                errEl.style.display = 'block';
-            }
+          // 2. Fetch AI Predictions
+          document.getElementById('aiLoadingText').innerHTML = 'Market data updated! Fetching AI predictions... (this might take a few seconds)';
+
+          const payload = {
+            amount: window.lastBuild.amount,
+            risk: window.lastBuild.risk,
+            sectors: window.lastBuild.sectorsArr.map(k => SECTORS[k].name)
+          };
+
+          const aiResponse = await fetch('/api/ai-predict', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+
+          if (aiResponse.status === 401) {
+            if (window.showSignedOut) window.showSignedOut();
+            throw new Error("Authentication required. Please sign in.");
+          }
+
+          const aiData = await aiResponse.json();
+
+          if (aiData.error) throw new Error(aiData.error);
+
+          document.getElementById('aiMarketText').innerHTML = escapeHtml(aiData.market_analysis).replace(/\n/g, '<br>');
+          document.getElementById('aiCorporateText').innerHTML = escapeHtml(aiData.corporate_guidance).replace(/\n/g, '<br>');
+          document.getElementById('aiPredictionText').innerHTML = escapeHtml(aiData.predictions).replace(/\n/g, '<br>');
+
+          aiLoading.style.display = 'none';
+          aiContent.style.display = 'block';
+
+        } catch (err) {
+          document.getElementById('aiLoadingText').innerHTML = '<span style="color:var(--red);">Error: ' + escapeHtml(err.message) + '</span>';
+        }
+      });
+
+      renderSavedList();
+      updateActiveLabel();
+
+    } catch (err) {
+      const panel = document.getElementById('resultsPanel');
+      if (panel) {
+        panel.innerHTML = '<h2>Something went wrong</h2><div style="color:#D14B3F;font-family:\'IBM Plex Mono\';font-size:12px;white-space:pre-wrap;">' + err.message + '</div>';
+      }
+      console.error(err);
+    }
+  </script>
+
+  <script>
+    (function () {
+      const GOOGLE_CLIENT_ID = "__GOOGLE_CLIENT_ID__"; // injected by the server (main.py)
+
+      function showSignedInUser(user) {
+        window.currentUserEmail = user.email || '';
+        document.getElementById('googleSignInBtn').style.display = 'none';
+        const chip = document.getElementById('authUserChip');
+        const picEl = document.getElementById('authUserPic');
+        const initialEl = document.getElementById('authUserInitial');
+        const emailLocalPart = user.email ? user.email.split('@')[0] : '';
+        const displayName = user.name || user.given_name || emailLocalPart || 'there';
+        document.getElementById('authUserName').textContent = displayName;
+
+        if (initialEl) {
+          initialEl.textContent = (displayName.charAt(0) || 'U').toUpperCase();
+        }
+
+        if (user.picture) {
+          picEl.style.display = 'block';
+          if (initialEl) initialEl.style.display = 'none';
+          picEl.src = user.picture;
+        } else {
+          picEl.style.display = 'none';
+          if (initialEl) initialEl.style.display = 'flex';
+        }
+
+        chip.style.display = 'flex';
+
+        // Reveal dashboard and hide auth gateway card
+        const gateway = document.getElementById('authGateway');
+        const main = document.getElementById('appMain');
+        if (gateway) gateway.style.display = 'none';
+        if (main) main.style.display = 'grid';
+
+        if (window.renderSavedList) window.renderSavedList();
+      }
+
+      function showSignedOut() {
+        window.currentUserEmail = '';
+        document.getElementById('googleSignInBtn').style.display = 'block';
+        document.getElementById('authUserChip').style.display = 'none';
+
+        // Hide dashboard and show auth gateway card
+        const gateway = document.getElementById('authGateway');
+        const main = document.getElementById('appMain');
+        if (gateway) gateway.style.display = 'block';
+        if (main) main.style.display = 'none';
+      }
+      window.showSignedOut = showSignedOut;
+
+      async function handleCredentialResponse(response) {
+        try {
+          const res = await fetch('/api/auth/google', {
+            method: 'POST',
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ credential: response.credential })
+          });
+          if (!res.ok) {
+            const err = await res.json().catch(() => ({ detail: 'Sign-in failed' }));
+            throw new Error(err.detail || 'Sign-in failed');
+          }
+          const data = await res.json();
+          showSignedInUser(data.user);
+        } catch (err) {
+          console.error('Google sign-in failed:', err);
+          showSignedOut();
+        }
+      }
+      // Exposed so Google Identity Services can call it via data-callback
+      window.handleCredentialResponse = handleCredentialResponse;
+
+      async function restoreSession() {
+        try {
+          const res = await fetch('/api/auth/me', { credentials: 'include' });
+          if (res.ok) {
+            const data = await res.json();
+            showSignedInUser(data.user);
             return;
+          }
+        } catch (err) { /* ignore, fall through to signed-out state */ }
+        showSignedOut();
+      }
+
+      function initGoogleButton() {
+        if (!window.google || !google.accounts || !google.accounts.id) {
+          // GIS script hasn't loaded yet, retry shortly
+          setTimeout(initGoogleButton, 200);
+          return;
         }
-        localStorage.setItem('nivesh_token', 'user:' + email);
-        fetchPortfoliosFromCloud();
-    });
-}
+        if (!GOOGLE_CLIENT_ID) {
+          console.warn('QuantSys: GOOGLE_CLIENT_ID is not configured on the server, so Google Sign-In is disabled.');
+          return;
+        }
+        google.accounts.id.initialize({
+          client_id: GOOGLE_CLIENT_ID,
+          callback: handleCredentialResponse,
+          auto_select: false,
+          cancel_on_tap_outside: true
+        });
+        const headerBtn = document.getElementById('googleSignInBtn');
+        if (headerBtn) {
+          google.accounts.id.renderButton(
+            headerBtn,
+            { theme: 'filled_black', size: 'medium', shape: 'pill', text: 'signin_with' }
+          );
+        }
+        const gatewayBtn = document.getElementById('gatewayGoogleBtn');
+        if (gatewayBtn) {
+          google.accounts.id.renderButton(
+            gatewayBtn,
+            { theme: 'filled_black', size: 'large', shape: 'pill', text: 'signin_with' }
+          );
+        }
+      }
 
-}catch(err){
-  const panel = document.getElementById('resultsPanel');
-  if(panel){
-    panel.innerHTML = '<h2>Something went wrong</h2><div style="color:#D14B3F;font-family:\'IBM Plex Mono\';font-size:12px;white-space:pre-wrap;">'+err.message+'</div>';
-  }
-  console.error(err);
-}
-</script>
+      document.getElementById('authSignOutBtn').addEventListener('click', async function () {
+        try {
+          await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+        } catch (err) { console.error('Sign-out request failed:', err); }
+        if (window.google && google.accounts && google.accounts.id) {
+          google.accounts.id.disableAutoSelect();
+        }
+        showSignedOut();
+      });
 
-
-
+      initGoogleButton();
+      restoreSession();
+    })();
+  </script>
 
 </body>
+
 </html>
