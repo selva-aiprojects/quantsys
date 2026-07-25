@@ -227,7 +227,7 @@ def ai_predict(req: PortfolioRequest, user: dict = Depends(get_current_user)):
     Ensure the sum of allocation_pct equals 100. Provide indian tickers (e.g., .NS suffix) if appropriate or global ones if sectors suggest it. The output MUST be valid JSON.
     """
     
-    models_to_try = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash']
+    models_to_try = ['gemini-2.5-flash', 'gemini-2.0-flash']
     last_error = None
 
     for model_name in models_to_try:
@@ -244,11 +244,13 @@ def ai_predict(req: PortfolioRequest, user: dict = Depends(get_current_user)):
             return json.loads(text.strip())
         except Exception as e:
             last_error = e
-            if "429" in str(e) or "RESOURCE_EXHAUSTED" in str(e) or "Quota exceeded" in str(e):
+            err_str = str(e)
+            if any(k in err_str for k in ["429", "RESOURCE_EXHAUSTED", "Quota exceeded", "404", "NOT_FOUND"]):
                 continue
             else:
                 break
 
-    if "429" in str(last_error) or "RESOURCE_EXHAUSTED" in str(last_error) or "Quota exceeded" in str(last_error):
+    err_str = str(last_error) if last_error else "Unknown error"
+    if any(k in err_str for k in ["429", "RESOURCE_EXHAUSTED", "Quota exceeded"]):
         return {"error": "Gemini API free tier rate limit reached (20 requests/day). Please wait 30 seconds and try again."}
-    return {"error": f"AI prediction failed: {str(last_error)}"}
+    return {"error": f"AI prediction failed: {err_str}"}
