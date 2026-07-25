@@ -81,13 +81,18 @@ class PortfolioRequest(BaseModel):
 api_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
 client = genai.Client(api_key=api_key) if api_key else None
 
+@app.get("/api/config")
+def get_config():
+    client_id = os.getenv("GOOGLE_CLIENT_ID", "") or os.getenv("google_client_id", "") or GOOGLE_CLIENT_ID
+    return {"google_client_id": client_id}
+
+
 @app.get("/", response_class=HTMLResponse)
 async def read_index():
     with open("index.html", "r", encoding="utf-8") as f:
         html = f.read()
-    # Inject the real Google OAuth client ID at request time so it never
-    # has to be hardcoded in the static HTML file.
-    return html.replace("__GOOGLE_CLIENT_ID__", GOOGLE_CLIENT_ID)
+    client_id = os.getenv("GOOGLE_CLIENT_ID", "") or os.getenv("google_client_id", "") or GOOGLE_CLIENT_ID
+    return html.replace("__GOOGLE_CLIENT_ID__", client_id)
 
 
 @app.post("/api/auth/google")

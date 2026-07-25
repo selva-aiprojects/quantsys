@@ -1805,13 +1805,19 @@
         showSignedOut();
       }
 
-      function initGoogleButton() {
-        if (!window.google || !google.accounts || !google.accounts.id) {
-          // GIS script hasn't loaded yet, retry shortly
-          setTimeout(initGoogleButton, 200);
-          return;
+      async function initGoogleButton() {
+        let clientId = GOOGLE_CLIENT_ID;
+        if (!clientId || clientId === "__GOOGLE_CLIENT_ID__") {
+          try {
+            const res = await fetch('/api/config');
+            if (res.ok) {
+              const data = await res.json();
+              clientId = data.google_client_id || '';
+            }
+          } catch (e) { console.error('Failed to fetch /api/config:', e); }
         }
-        if (!GOOGLE_CLIENT_ID || GOOGLE_CLIENT_ID === "__GOOGLE_CLIENT_ID__") {
+
+        if (!clientId) {
           console.warn('QuantSys: GOOGLE_CLIENT_ID is not configured on the server, so Google Sign-In is disabled.');
           const gatewayBtn = document.getElementById('gatewayGoogleBtn');
           if (gatewayBtn) {
@@ -1819,8 +1825,15 @@
           }
           return;
         }
+
+        if (!window.google || !google.accounts || !google.accounts.id) {
+          // GIS script hasn't loaded yet, retry shortly
+          setTimeout(initGoogleButton, 200);
+          return;
+        }
+
         google.accounts.id.initialize({
-          client_id: GOOGLE_CLIENT_ID,
+          client_id: clientId,
           callback: handleCredentialResponse,
           auto_select: false,
           cancel_on_tap_outside: true
