@@ -1045,10 +1045,9 @@
             </div>
           </div>
         </div>
-      </div>
 
-      <!-- SAVED PORTFOLIOS -->
-      <div class="panel main-tab-content" id="tabSaved">
+        <!-- SAVED PORTFOLIOS -->
+        <div class="panel main-tab-content" id="tabSaved">
         <h2>Saved portfolios <span
             style="text-transform:none;letter-spacing:normal;color:var(--muted-2);font-size:11px;">— stored in this
             browser only</span></h2>
@@ -1462,7 +1461,18 @@
       }
       window.renderSavedList = renderSavedList;
 
-      function loadPortfolio(id) {
+      function autoLoadLatestPortfolio() {
+        const list = loadPortfolios();
+        if (list && list.length > 0) {
+          const latest = list[list.length - 1];
+          if (latest && latest.id) {
+            loadPortfolio(latest.id, false);
+          }
+        }
+      }
+      window.autoLoadLatestPortfolio = autoLoadLatestPortfolio;
+
+      function loadPortfolio(id, shouldScroll) {
         const list = loadPortfolios();
         const p = list.find(function (x) { return x.id === id; });
         if (!p) return;
@@ -1492,7 +1502,9 @@
         updateActiveLabel();
         document.getElementById('compareOutput').innerHTML = '';
         document.getElementById('historyOutput').innerHTML = '';
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        if (shouldScroll !== false) {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
       }
 
       function deletePortfolio(id) {
@@ -1743,6 +1755,7 @@
         if (main) main.style.display = 'grid';
 
         if (window.renderSavedList) window.renderSavedList();
+        if (window.autoLoadLatestPortfolio) window.autoLoadLatestPortfolio();
       }
 
       function showSignedOut() {
