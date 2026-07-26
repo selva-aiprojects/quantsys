@@ -1336,6 +1336,251 @@
       border-top: 1px dashed var(--border);
       padding-top: 10px;
     }
+
+    /* ── Progressive AI loading steps ── */
+    .ai-progress-steps {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding: 4px 0 8px;
+    }
+
+    .ai-progress-step {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 12.5px;
+      opacity: 0.35;
+      transition: opacity 0.3s ease, color 0.3s ease;
+    }
+
+    .ai-progress-step.step-active {
+      opacity: 1;
+      color: var(--amber);
+    }
+
+    .ai-progress-step.step-done {
+      opacity: 0.75;
+      color: var(--teal);
+    }
+
+    .ai-progress-step.step-error {
+      opacity: 1;
+      color: var(--red);
+    }
+
+    .ai-step-icon {
+      width: 20px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-size: 14px;
+      margin-top: 1px;
+    }
+
+    .ai-step-icon .step-spinner {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border: 2px solid currentColor;
+      border-top-color: transparent;
+      border-radius: 50%;
+      animation: aiStepSpin 0.8s linear infinite;
+    }
+
+    @keyframes aiStepSpin {
+      to { transform: rotate(360deg); }
+    }
+
+    .ai-step-label {
+      flex: 1;
+    }
+
+    .ai-step-label b {
+      display: block;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+    }
+
+    .ai-step-sublabel {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 2px;
+      transition: color 0.25s ease;
+    }
+
+    .ai-progress-step.step-active .ai-step-sublabel {
+      color: var(--amber);
+    }
+
+    .ai-progress-step.step-done .ai-step-sublabel {
+      color: var(--teal);
+    }
+
+    .ai-progress-bar-wrap {
+      height: 3px;
+      background: rgba(255,255,255,0.07);
+      border-radius: 4px;
+      margin: 10px 0 6px;
+      overflow: hidden;
+    }
+
+    .ai-progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, var(--amber), var(--teal));
+      border-radius: 4px;
+      width: 0%;
+      transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* ── Comparison Pane ── */
+    .cmp-summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 12px;
+      margin-bottom: 22px;
+    }
+
+    .cmp-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .cmp-card-label {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      font-family: 'IBM Plex Mono', monospace;
+    }
+
+    .cmp-card-value {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .cmp-card-value.positive { color: var(--teal); }
+    .cmp-card-value.negative { color: var(--red); }
+    .cmp-card-value.neutral  { color: var(--amber); }
+
+    .cmp-card-sub {
+      font-size: 11px;
+      color: var(--muted);
+      font-family: 'IBM Plex Mono', monospace;
+    }
+
+    .cmp-section-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin: 18px 0 10px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .cmp-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12.5px;
+    }
+
+    .cmp-table th {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--muted);
+      text-align: left;
+      padding: 6px 8px;
+      border-bottom: 1px solid var(--border);
+      font-weight: 500;
+    }
+
+    .cmp-table td {
+      padding: 8px 8px;
+      border-bottom: 1px solid rgba(32,52,42,0.5);
+      vertical-align: middle;
+    }
+
+    .cmp-table tr:last-child td { border-bottom: none; }
+    .cmp-table tr:hover td { background: rgba(255,255,255,0.02); }
+
+    .cmp-drift-bar-wrap {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      min-width: 90px;
+    }
+
+    .cmp-bar-track {
+      flex: 1;
+      height: 6px;
+      background: rgba(255,255,255,0.07);
+      border-radius: 4px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .cmp-bar-proposed {
+      position: absolute;
+      top: 0; left: 0;
+      height: 100%;
+      background: rgba(217,164,65,0.45);
+      border-radius: 4px;
+      transition: width 0.5s ease;
+    }
+
+    .cmp-bar-actual {
+      position: absolute;
+      top: 0; left: 0;
+      height: 100%;
+      border-radius: 4px;
+      transition: width 0.5s ease;
+    }
+
+    .cmp-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 600;
+    }
+
+    .cmp-badge.up   { background: rgba(63,203,142,0.12); color: var(--teal); }
+    .cmp-badge.down { background: rgba(255,107,91,0.12);  color: var(--red); }
+    .cmp-badge.flat { background: rgba(217,164,65,0.12);  color: var(--amber); }
+
+    .cmp-timestamp {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      color: var(--muted-2);
+      margin-top: 16px;
+      text-align: right;
+    }
+
+    .cmp-empty {
+      text-align: center;
+      color: var(--muted);
+      font-size: 13px;
+      padding: 40px 20px;
+      font-family: 'IBM Plex Mono', monospace;
+    }
   </style>
 </head>
 
@@ -1482,6 +1727,7 @@
         <div class="right-nav-bar">
           <div class="right-tabs-row">
             <button class="right-tab-btn" id="rTabPortfolio" onclick="switchRightTab('panePortfolio', this)">📊 Portfolio</button>
+            <button class="right-tab-btn" id="rTabComparison" onclick="switchRightTab('paneComparison', this)">⚖️ Comparison <span class="ai-tab-badge" id="cmpTabBadge" style="display:none;">LIVE</span></button>
             <button class="right-tab-btn" id="rTabAI" onclick="switchRightTab('paneAI', this)">✨ AI Insights <span class="ai-tab-badge" id="aiTabBadge" style="display:none;">LIVE</span></button>
           </div>
           <div class="status-steps" id="workflowStepper">
@@ -1517,9 +1763,36 @@
           <!-- AI Insights pane -->
           <div id="paneAI" class="right-pane">
             <div id="aiLoading"
-              style="display:block; font-family:'IBM Plex Mono'; font-size: 13px; color: var(--teal); padding: 14px; background: rgba(47,182,140,0.08); border: 1px solid var(--teal); border-radius: 8px; margin-bottom: 16px;">
-              <span style="display:inline-block; animation: spin 1.5s linear infinite; margin-right: 8px;">⏳</span>
-              <span id="aiLoadingText">Fetching live market prices and analyzing predictions...</span>
+              style="display:block; font-family:'IBM Plex Mono'; font-size: 13px; color: var(--teal); padding: 16px 18px; background: rgba(47,182,140,0.06); border: 1px solid var(--border); border-radius: 10px; margin-bottom: 16px;">
+              <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);margin-bottom:12px;">⚙️ Initializing Analysis</div>
+              <div class="ai-progress-bar-wrap"><div class="ai-progress-bar" id="aiProgressBar"></div></div>
+              <div class="ai-progress-steps">
+                <!-- Step 1: Market Prices -->
+                <div class="ai-progress-step" id="aiStep1">
+                  <div class="ai-step-icon" id="aiStep1Icon">○</div>
+                  <div class="ai-step-label">
+                    <b>Fetching Live Market Prices</b>
+                    <div class="ai-step-sublabel" id="aiStep1Sub">Connecting to NSE/BSE via Yahoo Finance...</div>
+                  </div>
+                </div>
+                <!-- Step 2: AI Analysis -->
+                <div class="ai-progress-step" id="aiStep2">
+                  <div class="ai-step-icon" id="aiStep2Icon">○</div>
+                  <div class="ai-step-label">
+                    <b>Running Gemini AI Analysis</b>
+                    <div class="ai-step-sublabel" id="aiStep2Sub">Waiting for market data...</div>
+                  </div>
+                </div>
+                <!-- Step 3: Building signals -->
+                <div class="ai-progress-step" id="aiStep3">
+                  <div class="ai-step-icon" id="aiStep3Icon">○</div>
+                  <div class="ai-step-label">
+                    <b>Building Trading Signals &amp; Insights</b>
+                    <div class="ai-step-sublabel" id="aiStep3Sub">Waiting for AI response...</div>
+                  </div>
+                </div>
+              </div>
+              <div id="aiLoadingText" style="font-size:11px;color:var(--muted);margin-top:8px;"></div>
             </div>
             <div id="aiContent" style="display:none;">
               <div class="ai-tabs">
@@ -1548,6 +1821,40 @@
                 <div id="aiLongTermGrid" class="signal-grid"></div>
                 <div class="playbook" id="aiLongTermText" style="margin-top:14px;"></div>
               </div>
+            </div>
+          </div>
+
+          <!-- Portfolio Comparison pane -->
+          <div id="paneComparison" class="right-pane">
+            <div id="cmpEmpty" class="cmp-empty">
+              ⚖️ Build a portfolio and fetch live prices to see<br>the Proposed vs Actual comparison.
+            </div>
+            <div id="cmpContent" style="display:none;">
+              <!-- Summary cards -->
+              <div class="cmp-summary-grid" id="cmpSummaryGrid"></div>
+
+              <!-- Per-stock table -->
+              <div class="cmp-section-title">📋 Stock-by-Stock Breakdown</div>
+              <table class="cmp-table" id="cmpStockTable">
+                <thead>
+                  <tr>
+                    <th>Stock</th>
+                    <th>Sector</th>
+                    <th>Proposed ₹</th>
+                    <th>Actual Value</th>
+                    <th>P&amp;L</th>
+                    <th>Drift %</th>
+                    <th>Allocation</th>
+                  </tr>
+                </thead>
+                <tbody id="cmpStockBody"></tbody>
+              </table>
+
+              <!-- Sector allocation -->
+              <div class="cmp-section-title">🏗 Sector Allocation: Proposed vs Actual</div>
+              <div id="cmpSectorBars"></div>
+
+              <div class="cmp-timestamp" id="cmpTimestamp"></div>
             </div>
           </div>
 
@@ -2184,9 +2491,11 @@
       });
 
       // ── Live price fetch helper (shared by triggerAI and refresh button) ──
-      async function fetchAndApplyLivePrices(showStatus) {
+      async function fetchAndApplyLivePrices(showStatus, onProgress) {
         const stocks = snapshotStocksFromDOM();
         if (stocks.length === 0) return 0;
+        const total = stocks.length;
+        if (onProgress) onProgress(0, total, null);
         const tickers = stocks.map(s => s.ticker + '.NS').join(',');
         const marketResp = await fetch(`/api/market-data?tickers=${tickers}`, { credentials: 'include' });
         if (marketResp.status === 401) {
@@ -2196,7 +2505,7 @@
         const marketData = await marketResp.json();
         let updated = 0;
         if (marketData.data) {
-          stocks.forEach(s => {
+          stocks.forEach((s, idx) => {
             const data = marketData.data[s.ticker + '.NS'];
             if (data && data.price > 0) {
               const input = document.querySelector(`.price-input[data-rowid="${s.rowId}"]`);
@@ -2213,6 +2522,7 @@
                 }
               }
             }
+            if (onProgress) onProgress(idx + 1, total, s.ticker);
           });
         }
         if (showStatus) {
@@ -2226,6 +2536,28 @@
         return updated;
       }
 
+      // ── Progress step helpers for triggerAI ──
+      function setAIStep(stepNum, state, subText) {
+        // state: 'active' | 'done' | 'error' | 'pending'
+        const el = document.getElementById('aiStep' + stepNum);
+        const iconEl = document.getElementById('aiStep' + stepNum + 'Icon');
+        const subEl = document.getElementById('aiStep' + stepNum + 'Sub');
+        if (!el) return;
+        el.className = 'ai-progress-step' + (state !== 'pending' ? ' step-' + state : '');
+        if (iconEl) {
+          if (state === 'active') iconEl.innerHTML = '<span class="step-spinner"></span>';
+          else if (state === 'done') iconEl.textContent = '✓';
+          else if (state === 'error') iconEl.textContent = '✕';
+          else iconEl.textContent = '○';
+        }
+        if (subEl && subText !== undefined) subEl.textContent = subText;
+      }
+
+      function setAIProgressBar(pct) {
+        const bar = document.getElementById('aiProgressBar');
+        if (bar) bar.style.width = pct + '%';
+      }
+
       // Refresh Prices button
       document.getElementById('refreshPricesBtn').addEventListener('click', async function() {
         const btn = this;
@@ -2235,6 +2567,7 @@
         icon.style.animation = 'spin 1s linear infinite';
         try {
           await fetchAndApplyLivePrices(true);
+          renderComparison();
         } catch(e) {
           const statusEl = document.getElementById('priceUpdateStatus');
           if (statusEl) { statusEl.style.display = 'block'; statusEl.innerHTML = '<span style="color:var(--red);">⚠️ ' + escapeHtml(e.message) + '</span>'; }
@@ -2261,6 +2594,127 @@
         }).join('');
       }
 
+      // ── Portfolio Comparison: Proposed vs Actual ──
+      function renderComparison() {
+        const cmpEmpty = document.getElementById('cmpEmpty');
+        const cmpContent = document.getElementById('cmpContent');
+        if (!window.lastBuild) { return; }
+
+        const stocks = snapshotStocksFromDOM();
+        if (stocks.length === 0) { return; }
+
+        // Check if any live prices have been set (price > 1000 is a heuristic; use badge presence)
+        const hasLivePrices = stocks.some(s => document.querySelector('.live-price-badge[id="livebadge-' + s.rowId + '"][style*="inline"]') || s.price > 100);
+
+        cmpEmpty.style.display = 'none';
+        cmpContent.style.display = 'block';
+
+        const lb = window.lastBuild;
+        const totalProposed = stocks.reduce((s, x) => s + x.allocated, 0);
+        const totalActual   = stocks.reduce((s, x) => s + (x.qty * x.price), 0);
+        const totalPnL      = totalActual - totalProposed;
+        const totalPnLPct   = totalProposed > 0 ? (totalPnL / totalProposed * 100) : 0;
+        const portfolioTotal = lb.amount; // includes buffer
+
+        // ── Summary cards ──
+        const pnlClass = totalPnL > 0 ? 'positive' : totalPnL < 0 ? 'negative' : 'neutral';
+        const pnlSign  = totalPnL > 0 ? '+' : '';
+        document.getElementById('cmpSummaryGrid').innerHTML = [
+          { label: 'Total Proposed', value: inr(totalProposed), sub: 'Large-cap sleeve only', cls: 'neutral' },
+          { label: 'Current Value', value: inr(totalActual), sub: 'At live prices × qty', cls: '' },
+          { label: 'Unrealised P&L', value: pnlSign + inr(totalPnL), sub: pnlSign + totalPnLPct.toFixed(2) + '% vs proposed', cls: pnlClass },
+          { label: 'Portfolio Value', value: inr(portfolioTotal), sub: 'Incl. mid/small/buffer', cls: '' }
+        ].map(function(c) {
+          return '<div class="cmp-card">' +
+            '<div class="cmp-card-label">' + c.label + '</div>' +
+            '<div class="cmp-card-value ' + c.cls + '">' + c.value + '</div>' +
+            '<div class="cmp-card-sub">' + c.sub + '</div>' +
+            '</div>';
+        }).join('');
+
+        // ── Per-stock table ──
+        const totalAlloc = totalProposed || 1; // avoid /0
+        const totalActualForPct = totalActual || 1;
+        const tbody = document.getElementById('cmpStockBody');
+        tbody.innerHTML = stocks.map(function(s) {
+          const actualVal = s.qty * s.price;
+          const pnl = actualVal - s.allocated;
+          const pnlPct = s.allocated > 0 ? (pnl / s.allocated * 100) : 0;
+          const pnlSign = pnl > 0 ? '+' : '';
+          const badgeCls = pnl > 0 ? 'up' : pnl < 0 ? 'down' : 'flat';
+          const badgeIcon = pnl > 0 ? '▲' : pnl < 0 ? '▼' : '—';
+
+          const proposedPct = (s.allocated / totalAlloc * 100);
+          const actualPct   = (actualVal   / totalActualForPct * 100);
+          const driftPp     = actualPct - proposedPct;
+          const driftSign   = driftPp > 0 ? '+' : '';
+
+          const barProposedW = Math.min(proposedPct * 2, 100); // scale to bar (50% = full bar)
+          const barActualW   = Math.min(actualPct   * 2, 100);
+          const barActualColor = pnl >= 0 ? 'var(--teal)' : 'var(--red)';
+
+          return '<tr>' +
+            '<td><b style="font-family:\'IBM Plex Mono\',monospace;font-size:12px;">' + escapeHtml(s.ticker) + '</b></td>' +
+            '<td style="color:var(--muted);font-size:11px;">' + escapeHtml(s.sector) + '</td>' +
+            '<td style="font-family:\'IBM Plex Mono\',monospace;">' + inr(s.allocated) + '</td>' +
+            '<td style="font-family:\'IBM Plex Mono\',monospace;">' + inr(actualVal) + '</td>' +
+            '<td><span class="cmp-badge ' + badgeCls + '">' + badgeIcon + ' ' + pnlSign + inr(pnl) + ' (' + pnlSign + pnlPct.toFixed(1) + '%)</span></td>' +
+            '<td style="font-family:\'IBM Plex Mono\',monospace;font-size:11px;color:' + (driftPp > 0 ? 'var(--teal)' : driftPp < 0 ? 'var(--red)' : 'var(--muted)') + ';">' + driftSign + driftPp.toFixed(1) + ' pp</td>' +
+            '<td><div class="cmp-drift-bar-wrap">' +
+              '<div class="cmp-bar-track">' +
+                '<div class="cmp-bar-proposed" style="width:' + barProposedW + '%"></div>' +
+                '<div class="cmp-bar-actual" style="width:' + barActualW + '%;background:' + barActualColor + ';opacity:0.7"></div>' +
+              '</div>' +
+              '<span style="font-size:10px;font-family:\'IBM Plex Mono\',monospace;color:var(--muted);min-width:30px;">' + actualPct.toFixed(0) + '%</span>' +
+            '</div></td>' +
+            '</tr>';
+        }).join('');
+
+        // ── Sector aggregation bars ──
+        const sectorMap = {};
+        stocks.forEach(function(s) {
+          const sec = s.sector || 'Other';
+          if (!sectorMap[sec]) sectorMap[sec] = { proposed: 0, actual: 0 };
+          sectorMap[sec].proposed += s.allocated;
+          sectorMap[sec].actual   += s.qty * s.price;
+        });
+        const sectorBarsEl = document.getElementById('cmpSectorBars');
+        sectorBarsEl.innerHTML = Object.keys(sectorMap).map(function(sec) {
+          const d = sectorMap[sec];
+          const propPct   = totalAlloc > 0 ? (d.proposed / totalAlloc * 100) : 0;
+          const actualPct = totalActualForPct > 0 ? (d.actual / totalActualForPct * 100) : 0;
+          const pnl = d.actual - d.proposed;
+          const pnlSign = pnl > 0 ? '+' : '';
+          const col = pnl >= 0 ? 'var(--teal)' : 'var(--red)';
+          return '<div style="margin-bottom:14px;">' +
+            '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;">' +
+              '<span style="font-size:12px;color:var(--text);">' + escapeHtml(sec) + '</span>' +
+              '<span style="font-family:\'IBM Plex Mono\',monospace;font-size:11px;color:' + col + ';">' + pnlSign + inr(pnl) + '</span>' +
+            '</div>' +
+            '<div style="display:flex;align-items:center;gap:8px;">' +
+              '<span style="font-size:10px;font-family:\'IBM Plex Mono\',monospace;color:var(--muted);width:28px;text-align:right;">' + propPct.toFixed(0) + '%</span>' +
+              '<div style="flex:1;position:relative;height:8px;background:rgba(255,255,255,0.06);border-radius:4px;overflow:hidden;">' +
+                '<div style="position:absolute;top:0;left:0;height:100%;width:' + Math.min(propPct * 1.5, 100) + '%;background:rgba(217,164,65,0.4);border-radius:4px;"></div>' +
+                '<div style="position:absolute;top:0;left:0;height:100%;width:' + Math.min(actualPct * 1.5, 100) + '%;background:' + col + ';opacity:0.65;border-radius:4px;"></div>' +
+              '</div>' +
+              '<span style="font-size:10px;font-family:\'IBM Plex Mono\',monospace;color:' + col + ';width:28px;">' + actualPct.toFixed(0) + '%</span>' +
+            '</div>' +
+            '<div style="display:flex;gap:14px;margin-top:3px;padding-left:36px;">' +
+              '<span style="font-size:10px;color:var(--muted-2);"><span style="display:inline-block;width:8px;height:8px;background:rgba(217,164,65,0.5);border-radius:2px;margin-right:3px;"></span>Proposed ' + inr(d.proposed) + '</span>' +
+              '<span style="font-size:10px;color:var(--muted-2);"><span style="display:inline-block;width:8px;height:8px;background:' + col + ';opacity:0.7;border-radius:2px;margin-right:3px;"></span>Actual ' + inr(d.actual) + '</span>' +
+            '</div>' +
+          '</div>';
+        }).join('');
+
+        document.getElementById('cmpTimestamp').textContent =
+          'Last updated: ' + new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+        // Show tab badge
+        const badge = document.getElementById('cmpTabBadge');
+        if (badge) badge.style.display = 'inline-block';
+      }
+      window.renderComparison = renderComparison;
+
       // Unified AI trigger — called automatically after buildPortfolio()
       async function triggerAI() {
         if (!window.lastBuild) return;
@@ -2273,25 +2727,56 @@
         setStepState(3);
         setToastMessage('⏳', 'Fetching live prices & AI insights...');
 
+        // Reset all steps to pending
         aiLoading.style.display = 'block';
         aiContent.style.display = 'none';
-        document.getElementById('aiLoadingText').innerHTML = 'Fetching live market prices...';
+        setAIStep(1, 'pending');
+        setAIStep(2, 'pending', 'Waiting for market data...');
+        setAIStep(3, 'pending', 'Waiting for AI response...');
+        setAIProgressBar(0);
+        document.getElementById('aiLoadingText').textContent = '';
+        const headerEl = aiLoading.querySelector('div');
+        if (headerEl) headerEl.textContent = '⚙️ Initializing Analysis';
 
         try {
-          // 1. Fetch Live Market Data
+          // ── Step 1: Fetch Live Market Prices ──
+          setAIStep(1, 'active', 'Connecting to NSE/BSE via Yahoo Finance...');
+          setAIProgressBar(5);
+          if (headerEl) headerEl.textContent = '📡 Fetching Live Market Data';
+
+          const stocks = snapshotStocksFromDOM();
+          const totalStocks = stocks.length;
+          let fetchedCount = 0;
+
           try {
-            await fetchAndApplyLivePrices(false);
+            await fetchAndApplyLivePrices(false, function(done, total, ticker) {
+              fetchedCount = done;
+              const pct = total > 0 ? Math.round((done / total) * 30) : 0;
+              setAIProgressBar(5 + pct);
+              if (done === 0) {
+                setAIStep(1, 'active', 'Sending request for ' + total + ' stock' + (total !== 1 ? 's' : '') + '...');
+              } else if (done < total) {
+                setAIStep(1, 'active', 'Received ' + done + '/' + total + (ticker ? ' — ' + ticker + ' ✓' : ''));
+              } else {
+                setAIStep(1, 'active', 'Processing prices for ' + done + ' stocks...');
+              }
+            });
+            setAIStep(1, 'done', 'Live prices updated for ' + fetchedCount + '/' + totalStocks + ' stocks ✓');
           } catch (marketErr) {
             console.error('Market data fetch failed:', marketErr);
             if (marketErr.message.includes('Authentication required')) throw marketErr;
+            setAIStep(1, 'error', 'Price fetch failed — proceeding with last known prices');
           }
 
-          // 2. Fetch AI Predictions
-          document.getElementById('aiLoadingText').innerHTML = 'Market data updated! Generating AI trading signals... (may take a few seconds)';
+          setAIProgressBar(38);
+          setToastMessage('🤖', 'Running AI analysis...');
+
+          // ── Step 2: AI Predictions ──
+          setAIStep(2, 'active', 'Sending portfolio data to Gemini AI...');
+          if (headerEl) headerEl.textContent = '🤖 Running Gemini AI Analysis';
 
           // Collect live prices for the AI prompt
           const liveStocks = snapshotStocksFromDOM();
-          const livePriceContext = liveStocks.map(s => s.ticker + ' @ ₹' + s.price).join(', ');
 
           const payload = {
             amount: window.lastBuild.amount,
@@ -2300,19 +2785,47 @@
             stocks: liveStocks.map(s => ({ ticker: s.ticker, price: s.price, allocated: s.allocated }))
           };
 
-          const aiResponse = await fetch('/api/ai-predict', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-          });
+          // Animated sublabel while waiting
+          let aiDots = 0;
+          const aiTickInterval = setInterval(() => {
+            aiDots = (aiDots + 1) % 4;
+            const dots = '.'.repeat(aiDots) || '.';
+            setAIStep(2, 'active', 'Gemini AI is generating your market insights' + dots);
+            // Slowly advance bar 38→75 while waiting
+            const bar = document.getElementById('aiProgressBar');
+            if (bar) {
+              const cur = parseFloat(bar.style.width) || 38;
+              if (cur < 72) bar.style.width = (cur + 0.4) + '%';
+            }
+          }, 700);
 
-          if (aiResponse.status === 401) {
-            if (window.showSignedOut) window.showSignedOut();
-            throw new Error('Authentication required. Please sign in.');
+          let aiData;
+          try {
+            const aiResponse = await fetch('/api/ai-predict', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(payload)
+            });
+            clearInterval(aiTickInterval);
+
+            if (aiResponse.status === 401) {
+              if (window.showSignedOut) window.showSignedOut();
+              throw new Error('Authentication required. Please sign in.');
+            }
+
+            aiData = await aiResponse.json();
+            if (aiData.error) throw new Error(aiData.error);
+          } catch(aiErr) {
+            clearInterval(aiTickInterval);
+            throw aiErr;
           }
 
-          const aiData = await aiResponse.json();
-          if (aiData.error) throw new Error(aiData.error);
+          setAIStep(2, 'done', 'AI analysis complete — signals received ✓');
+          setAIProgressBar(80);
+
+          // ── Step 3: Building signals & insights ──
+          setAIStep(3, 'active', 'Rendering market analysis & trading signals...');
+          if (headerEl) headerEl.textContent = '📊 Building Insights & Signals';
 
           document.getElementById('aiMarketText').innerHTML = escapeHtml(aiData.market_analysis || '').replace(/\n/g, '<br>');
           document.getElementById('aiCorporateText').innerHTML = escapeHtml(aiData.corporate_guidance || '').replace(/\n/g, '<br>');
@@ -2330,6 +2843,15 @@
           document.getElementById('aiLongTermText').innerHTML = escapeHtml(aiData.long_term_analysis || '').replace(/\n/g, '<br>');
           renderSignalCards('aiLongTermGrid', aiData.long_term_signals || []);
 
+          setAIStep(3, 'done', 'All signals rendered successfully ✓');
+          setAIProgressBar(100);
+
+          // Render comparison pane now that we have live prices + AI data
+          renderComparison();
+
+          // Short pause so user sees 100% before hiding loader
+          await new Promise(r => setTimeout(r, 400));
+
           aiLoading.style.display = 'none';
           aiContent.style.display = 'block';
 
@@ -2343,7 +2865,12 @@
           switchRightTab('paneAI', document.getElementById('rTabAI'));
 
         } catch (err) {
-          document.getElementById('aiLoadingText').innerHTML = '<span style="color:var(--red);">Error: ' + escapeHtml(err.message) + '</span>';
+          // Mark active step as error
+          [1,2,3].forEach(n => {
+            const el = document.getElementById('aiStep' + n);
+            if (el && el.classList.contains('step-active')) setAIStep(n, 'error', err.message);
+          });
+          document.getElementById('aiLoadingText').innerHTML = '<span style="color:var(--red);">⚠ ' + escapeHtml(err.message) + '</span>';
           hideTopLoader(false);
         }
       }
