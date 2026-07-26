@@ -2363,6 +2363,7 @@
   <script>
     (function () {
       const GOOGLE_CLIENT_ID = "__GOOGLE_CLIENT_ID__"; // injected by the server (main.py)
+      const FALLBACK_CLIENT_ID = "1008485046253-5es0stvufqj5sr31ndkbtsj5v7mv960t.apps.googleusercontent.com";
 
       function showSignedInUser(user) {
         window.currentUserEmail = user.email || '';
@@ -2459,16 +2460,7 @@
         }
 
         if (!clientId || clientId === "__GOOGLE_CLIENT_ID__") {
-          clientId = "1008485046253-5es0stvufqj5sr31ndkbtsj5v7mv960t.apps.googleusercontent.com";
-        }
-
-        if (!clientId) {
-          console.warn('QuantSys: GOOGLE_CLIENT_ID is not configured on the server, so Google Sign-In is disabled.');
-          const gatewayBtn = document.getElementById('gatewayGoogleBtn');
-          if (gatewayBtn) {
-            gatewayBtn.innerHTML = '<div style="color:var(--amber);font-size:13px;font-family:\'IBM Plex Mono\',monospace;padding:14px;background:rgba(217,164,65,0.08);border:1px solid var(--amber);border-radius:8px;max-width:480px;line-height:1.5;">⚠️ <b>Configuration Required:</b><br>GOOGLE_CLIENT_ID is not set in Vercel Environment Variables.<br>Please add GOOGLE_CLIENT_ID in your Vercel Project Settings to enable Google Sign-In on your deployed site.</div>';
-          }
-          return;
+          clientId = FALLBACK_CLIENT_ID;
         }
 
         if (!window.google || !google.accounts || !google.accounts.id) {
