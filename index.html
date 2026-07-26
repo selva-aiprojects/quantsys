@@ -2458,6 +2458,10 @@
           } catch (e) { console.error('Failed to fetch /api/config:', e); }
         }
 
+        if (!clientId || clientId === "__GOOGLE_CLIENT_ID__") {
+          clientId = "1008485046253-5es0stvufqj5sr31ndkbtsj5v7mv960t.apps.googleusercontent.com";
+        }
+
         if (!clientId) {
           console.warn('QuantSys: GOOGLE_CLIENT_ID is not configured on the server, so Google Sign-In is disabled.');
           const gatewayBtn = document.getElementById('gatewayGoogleBtn');
