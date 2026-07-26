@@ -1596,11 +1596,59 @@
       let selectedRisk = "moderate";
       let selectedSectors = new Set(["banking", "it", "fmcg"]);
 
-      // Ticker strip (decorative index names only — not live data)
-      const tickerNames = ["NIFTY 50", "SENSEX", "BANK NIFTY", "NIFTY MIDCAP 150", "NIFTY SMALLCAP 250", "NIFTY IT", "NIFTY FMCG", "NIFTY AUTO", "NIFTY PHARMA"];
-      document.getElementById('tickerStrip').innerHTML =
-        tickerNames.map(function (n) { return '<span><b>' + n + '</b> · index</span>'; }).join('') +
-        tickerNames.map(function (n) { return '<span><b>' + n + '</b> · index</span>'; }).join('');
+      // ── Live Ticker Strip ──
+      const TICKER_SYMBOLS = [
+        { sym: "^NSEI", label: "NIFTY 50" },
+        { sym: "^BSESN", label: "SENSEX" },
+        { sym: "^NSEBANK", label: "BANK NIFTY" },
+        { sym: "RELIANCE.NS", label: "RELIANCE" },
+        { sym: "HDFCBANK.NS", label: "HDFC BANK" },
+        { sym: "TCS.NS", label: "TCS" },
+        { sym: "INFY.NS", label: "INFOSYS" },
+        { sym: "ICICIBANK.NS", label: "ICICI BANK" },
+        { sym: "TATAMOTORS.NS", label: "TATA MOTORS" }
+      ];
+
+      function renderTickerHTML(items) {
+        const html = items.map(function (item) {
+          const colorStyle = item.change >= 0 ? 'color:var(--teal);' : 'color:var(--red);';
+          const sign = item.change > 0 ? '+' : '';
+          const changeText = item.price > 0 ? (sign + item.change_pct.toFixed(2) + '%') : '—';
+          const priceText = item.price > 0 ? ('₹' + item.price.toLocaleString('en-IN')) : 'Loading…';
+          return '<span><b>' + escapeHtml(item.label) + '</b> ' + priceText + ' <span style="' + colorStyle + 'font-weight:600;">(' + changeText + ')</span></span>';
+        }).join('');
+        const strip = document.getElementById('tickerStrip');
+        if (strip) strip.innerHTML = html + html; // duplicate for seamless marquee scrolling
+      }
+
+      // Render initial loading state
+      renderTickerHTML(TICKER_SYMBOLS.map(t => ({ label: t.label, price: 0, change: 0, change_pct: 0 })));
+
+      async function updateLiveTickerStrip() {
+        try {
+          const syms = TICKER_SYMBOLS.map(t => t.sym).join(',');
+          const resp = await fetch('/api/market-data?tickers=' + encodeURIComponent(syms), { credentials: 'include' });
+          if (!resp.ok) return;
+          const json = await resp.json();
+          if (!json.data) return;
+          const items = TICKER_SYMBOLS.map(function (t) {
+            const d = json.data[t.sym] || {};
+            return {
+              label: t.label,
+              price: d.price || 0,
+              change: d.change || 0,
+              change_pct: d.change_pct || 0
+            };
+          });
+          renderTickerHTML(items);
+        } catch (e) {
+          console.error("Ticker strip fetch failed:", e);
+        }
+      }
+
+      // Fetch live prices for ticker strip on load and refresh every 60s
+      updateLiveTickerStrip();
+      setInterval(updateLiveTickerStrip, 60000);
 
       // Sector chips
       const grid = document.getElementById('sectorGrid');
@@ -2140,7 +2188,7 @@
         const stocks = snapshotStocksFromDOM();
         if (stocks.length === 0) return 0;
         const tickers = stocks.map(s => s.ticker + '.NS').join(',');
-        const marketResp = await fetch(`/api/market-data?tickers=${tickers}`);
+        const marketResp = await fetch(`/api/market-data?tickers=${tickers}`, { credentials: 'include' });
         if (marketResp.status === 401) {
           if (window.showSignedOut) window.showSignedOut();
           throw new Error('Authentication required. Please sign in.');

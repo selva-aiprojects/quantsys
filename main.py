@@ -164,7 +164,7 @@ def logout(response: Response, session_id: Optional[str] = Cookie(default=None))
     return {"ok": True}
 
 @app.get("/api/market-data")
-def get_market_data(tickers: str, user: dict = Depends(get_current_user)):
+def get_market_data(tickers: str):
     """
     Fetch live market prices directly from Yahoo Finance Chart API (v8/finance/chart).
     Bypasses yfinance to avoid rate-limiting on the quoteSummary endpoint.
@@ -201,8 +201,15 @@ def get_market_data(tickers: str, user: dict = Depends(get_current_user)):
                 or meta.get("chartPreviousClose")
                 or 0
             )
+            prev_close = float(meta.get("chartPreviousClose") or meta.get("previousClose") or price)
+            change = price - prev_close
+            change_pct = (change / prev_close * 100) if prev_close else 0.0
+
             return ticker, {
                 "price": round(price, 2),
+                "prev_close": round(prev_close, 2),
+                "change": round(change, 2),
+                "change_pct": round(change_pct, 2),
                 "currency": meta.get("currency", "INR"),
                 "exchange": meta.get("exchangeName", ""),
             }
@@ -219,7 +226,16 @@ def get_market_data(tickers: str, user: dict = Depends(get_current_user)):
                     or meta2.get("chartPreviousClose")
                     or 0
                 )
-                return ticker, {"price": round(price2, 2), "currency": meta2.get("currency", "INR")}
+                prev_close2 = float(meta2.get("chartPreviousClose") or meta2.get("previousClose") or price2)
+                change2 = price2 - prev_close2
+                change_pct2 = (change2 / prev_close2 * 100) if prev_close2 else 0.0
+                return ticker, {
+                    "price": round(price2, 2),
+                    "prev_close": round(prev_close2, 2),
+                    "change": round(change2, 2),
+                    "change_pct": round(change_pct2, 2),
+                    "currency": meta2.get("currency", "INR")
+                }
             except Exception as e2:
                 return ticker, {"price": 0, "error": str(e2)}
 
