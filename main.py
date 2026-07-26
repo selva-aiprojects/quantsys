@@ -38,7 +38,12 @@ app.add_middleware(
 )
 
 # --- Google Sign-In configuration ---
-GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID", "") or os.getenv("google_client_id", "")
+DEFAULT_GOOGLE_CLIENT_ID = "1008485046253-5es0stvufqj5sr31ndkbtsj5v7mv960t.apps.googleusercontent.com"
+GOOGLE_CLIENT_ID = (
+    os.getenv("GOOGLE_CLIENT_ID", "")
+    or os.getenv("google_client_id", "")
+    or DEFAULT_GOOGLE_CLIENT_ID
+)
 _google_auth_request = google_auth_requests.Request()
 
 # Simple in-memory session store: session_id -> {email, name, picture, exp}
