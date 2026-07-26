@@ -76,6 +76,7 @@ class PortfolioRequest(BaseModel):
     amount: float
     risk: str
     sectors: list[str]
+    stocks: list[dict] = []  # Optional: [{"ticker": "HDFCBANK", "price": 1800, "allocated": 50000}]
 
 # Initialize Gemini Client
 api_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
@@ -165,73 +166,138 @@ def logout(response: Response, session_id: Optional[str] = Cookie(default=None))
 @app.get("/api/market-data")
 def get_market_data(tickers: str, user: dict = Depends(get_current_user)):
     """
-    Fetch market data for a comma-separated list of tickers.
+    Fetch live market prices directly from Yahoo Finance Chart API (v8/finance/chart).
+    Bypasses yfinance to avoid rate-limiting on the quoteSummary endpoint.
     """
+    import urllib.request
+    import concurrent.futures
+
     ticker_list = [t.strip().upper() for t in tickers.split(",") if t.strip()]
     if not ticker_list:
         return {"error": "No tickers provided"}
 
-    data = {}
-    try:
-        df = yf.download(ticker_list, period="5d", progress=False)
-        
-        for ticker in ticker_list:
-            ticker_obj = yf.Ticker(ticker)
+    HEADERS = {
+        "User-Agent": (
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+            "AppleWebKit/537.36 (KHTML, like Gecko) "
+            "Chrome/124.0.0.0 Safari/537.36"
+        ),
+        "Accept": "application/json",
+        "Accept-Language": "en-US,en;q=0.9",
+    }
+
+    def fetch_price(ticker: str) -> tuple[str, dict]:
+        url = (
+            f"https://query1.finance.yahoo.com/v8/finance/chart/{ticker}"
+            f"?interval=1d&range=1d&includePrePost=false"
+        )
+        try:
+            req = urllib.request.Request(url, headers=HEADERS)
+            with urllib.request.urlopen(req, timeout=8) as resp:
+                raw = json.loads(resp.read())
+            meta = raw["chart"]["result"][0]["meta"]
+            price = float(
+                meta.get("regularMarketPrice")
+                or meta.get("chartPreviousClose")
+                or 0
+            )
+            return ticker, {
+                "price": round(price, 2),
+                "currency": meta.get("currency", "INR"),
+                "exchange": meta.get("exchangeName", ""),
+            }
+        except Exception as e:
+            # Retry once via query2 host
             try:
-                # Handle single ticker or multiple ticker df structure
-                if len(ticker_list) == 1:
-                    close_series = df['Close']
-                else:
-                    close_series = df['Close'][ticker]
-                
-                # Check if series is empty
-                if close_series.empty:
-                    price = 0
-                else:
-                    price = float(close_series.dropna().iloc[-1])
-                
-                info = ticker_obj.info if ticker_obj.info else {}
-                data[ticker] = {
-                    "price": price,
-                    "beta": info.get("beta", 1.0),
-                    "sector": info.get("sector", "Unknown"),
-                    "marketCap": info.get("marketCap", 0)
-                }
-            except Exception as e:
-                data[ticker] = {"price": 0, "error": str(e)}
-                
-        return {"data": data}
-    except Exception as e:
-        return {"error": str(e)}
+                url2 = url.replace("query1.finance.yahoo.com", "query2.finance.yahoo.com")
+                req2 = urllib.request.Request(url2, headers=HEADERS)
+                with urllib.request.urlopen(req2, timeout=8) as resp2:
+                    raw2 = json.loads(resp2.read())
+                meta2 = raw2["chart"]["result"][0]["meta"]
+                price2 = float(
+                    meta2.get("regularMarketPrice")
+                    or meta2.get("chartPreviousClose")
+                    or 0
+                )
+                return ticker, {"price": round(price2, 2), "currency": meta2.get("currency", "INR")}
+            except Exception as e2:
+                return ticker, {"price": 0, "error": str(e2)}
+
+    data = {}
+    with concurrent.futures.ThreadPoolExecutor(max_workers=min(len(ticker_list), 8)) as pool:
+        futures = {pool.submit(fetch_price, t): t for t in ticker_list}
+        for future in concurrent.futures.as_completed(futures, timeout=15):
+            try:
+                ticker, result = future.result()
+                data[ticker] = result
+            except Exception as exc:
+                t = futures[future]
+                data[t] = {"price": 0, "error": str(exc)}
+
+    return {"data": data}
+
 
 @app.post("/api/ai-predict")
 def ai_predict(req: PortfolioRequest, user: dict = Depends(get_current_user)):
     if not client:
         return {"error": "GEMINI_API_KEY is not set. Please set it in .env file."}
-    
+
+    # Build live price context string
+    live_price_context = ""
+    stock_tickers = ""
+    if req.stocks:
+        live_price_context = "Current live market prices: " + ", ".join(
+            [f"{s['ticker']} @ ₹{s['price']}" for s in req.stocks if s.get('price', 0) > 0]
+        )
+        stock_tickers = ", ".join([s["ticker"] for s in req.stocks])
+    else:
+        stock_tickers = "stocks from sectors: " + ", ".join(req.sectors)
+
     prompt = f"""
-    You are an expert AI quantitative analyst and portfolio manager. 
-    The user wants to invest {req.amount} INR.
-    Their risk profile is: {req.risk}.
-    They are interested in the following sectors: {', '.join(req.sectors) if req.sectors else 'All sectors'}.
-    
-    Please provide:
-    1. Market and sector based analysis for the selected sectors.
-    2. Any general guidance or outlook from corporates in these sectors (summarized).
-    3. Your predictions and recommended allocation strategy based on historical performance and volatility.
-    
-    Return the response strictly as a JSON object with the following keys:
-    {{
-        "market_analysis": "string detailing the sector analysis",
-        "corporate_guidance": "string detailing corporate guidance",
-        "predictions": "string detailing your predictions and strategy",
-        "recommended_allocation": [
-             {{"ticker": "RELIANCE.NS", "sector": "Energy", "allocation_pct": 20, "reason": "..."}}
-        ]
-    }}
-    Ensure the sum of allocation_pct equals 100. Provide indian tickers (e.g., .NS suffix) if appropriate or global ones if sectors suggest it. The output MUST be valid JSON.
-    """
-    
+You are an expert AI quantitative analyst and portfolio manager for Indian equity markets.
+The user wants to invest {req.amount} INR with a {req.risk} risk profile.
+Sectors of interest: {', '.join(req.sectors) if req.sectors else 'All sectors'}.
+{live_price_context}
+Portfolio stocks (NSE tickers): {stock_tickers}
+
+Provide a full analysis covering:
+1. Market & sector outlook
+2. Corporate guidance from key companies in these sectors
+3. Overall predictions & allocation strategy
+4. SELL SIGNALS — stocks that are overvalued, technically weak, or facing headwinds
+5. SHORT-TERM (1–4 weeks) momentum-based BUY/SELL/HOLD for each portfolio stock
+6. LONG-TERM (6–18 months) fundamental conviction ratings for each portfolio stock
+
+Return ONLY a valid JSON object with these exact keys (no markdown, no extra text):
+{{
+    "market_analysis": "detailed sector & macro analysis string",
+    "corporate_guidance": "string summarising corporate earnings guidance & outlooks",
+    "predictions": "string with overall strategy & allocation thesis",
+    "recommended_allocation": [
+        {{"ticker": "TICKER.NS", "sector": "SectorName", "allocation_pct": 20, "reason": "brief reason"}}
+    ],
+    "sell_signals": [
+        {{"ticker": "TICKER", "action": "SELL", "reason": "concise reason", "target_price": null}}
+    ],
+    "sell_analysis": "string — overall narrative for why sell signals were generated now",
+    "short_term_signals": [
+        {{"ticker": "TICKER", "action": "BUY|SELL|HOLD", "reason": "momentum/news rationale", "target_price": null}}
+    ],
+    "short_term_analysis": "string — short-term market environment overview",
+    "long_term_signals": [
+        {{"ticker": "TICKER", "action": "STRONG BUY|BUY|HOLD|ACCUMULATE ON DIPS|SELL", "reason": "fundamental thesis", "target_price": null}}
+    ],
+    "long_term_analysis": "string — long-term fundamental thesis for the portfolio"
+}}
+
+Rules:
+- Use exact NSE ticker symbols (e.g. HDFCBANK, TCS, INFY) in signal arrays — no .NS suffix.
+- recommended_allocation allocation_pct values must sum to 100.
+- If live prices were provided, factor them into your target_price estimates.
+- Every signal array must have one entry per portfolio stock at minimum.
+- Output MUST be valid JSON only.
+"""
+
     models_to_try = ['gemini-2.5-flash', 'gemini-2.0-flash']
     last_error = None
 
@@ -242,10 +308,15 @@ def ai_predict(req: PortfolioRequest, user: dict = Depends(get_current_user)):
                 contents=prompt,
             )
             text = response.text.strip()
+            # Strip markdown code fences if present
             if text.startswith("```json"):
-                text = text[7:-3]
+                text = text[7:]
+                if text.endswith("```"):
+                    text = text[:-3]
             elif text.startswith("```"):
-                text = text[3:-3]
+                text = text[3:]
+                if text.endswith("```"):
+                    text = text[:-3]
             return json.loads(text.strip())
         except Exception as e:
             last_error = e
@@ -257,5 +328,5 @@ def ai_predict(req: PortfolioRequest, user: dict = Depends(get_current_user)):
 
     err_str = str(last_error) if last_error else "Unknown error"
     if any(k in err_str for k in ["429", "RESOURCE_EXHAUSTED", "Quota exceeded"]):
-        return {"error": "Gemini API free tier rate limit reached (20 requests/day). Please wait 30 seconds and try again."}
+        return {"error": "Gemini API free tier rate limit reached. Please wait 30 seconds and try again."}
     return {"error": f"AI prediction failed: {err_str}"}
