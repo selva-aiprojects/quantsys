@@ -39,6 +39,8 @@
       -webkit-font-smoothing: antialiased;
       overflow: hidden;
       height: 100vh;
+      /* Prevent pull-to-refresh on mobile */
+      overscroll-behavior: none;
     }
 
     .app {
@@ -1581,6 +1583,407 @@
       padding: 40px 20px;
       font-family: 'IBM Plex Mono', monospace;
     }
+
+    /* ── Mobile sidebar toggle button ── */
+    .sidebar-toggle-btn {
+      display: none;
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      border-radius: 8px;
+      padding: 7px 10px;
+      font-size: 18px;
+      cursor: pointer;
+      flex-shrink: 0;
+      line-height: 1;
+      transition: border-color 0.2s, color 0.2s;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .sidebar-toggle-btn:hover {
+      border-color: var(--amber);
+      color: var(--amber);
+    }
+
+    /* Mobile overlay backdrop */
+    .sidebar-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.55);
+      z-index: 199;
+      animation: fadeInOverlay 0.2s ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .sidebar-overlay.active {
+      display: block;
+    }
+
+    @keyframes fadeInOverlay {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+
+    /* ── Comparison table scroll wrapper ── */
+    .cmp-table-wrap {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .cmp-table-wrap .cmp-table {
+      min-width: 560px;
+    }
+
+    /* ── Auth gateway wrapper for mobile scroll ── */
+    .auth-gateway-wrap {
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      flex: 1;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+    }
+
+    /* ── Tablet (≤ 1024px) ── */
+    @media (max-width: 1024px) {
+      .dashboard {
+        grid-template-columns: 260px 1fr;
+      }
+
+      .auth-gateway-card {
+        margin: 20px 16px;
+        padding: 36px 24px;
+      }
+
+      header {
+        padding: 8px 14px;
+        gap: 8px;
+      }
+
+      .status-steps {
+        display: none;
+      }
+
+      .right-nav-bar {
+        padding: 8px 12px;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      /* Comparison table scrollable on tablet */
+      .cmp-table-wrap {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      /* Right tabs row wraps on small tablets */
+      .right-tabs-row {
+        flex-wrap: wrap;
+        gap: 3px;
+      }
+    }
+
+    /* ── Mobile (≤ 768px) ── */
+    @media (max-width: 768px) {
+      body {
+        overflow: hidden;
+      }
+
+      /* Show hamburger toggle */
+      .sidebar-toggle-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      /* Header layout compact */
+      header {
+        padding: 8px 12px;
+        gap: 8px;
+      }
+
+      h1 {
+        font-size: 14px;
+      }
+
+      /* Logo smaller on mobile */
+      .brand-logo {
+        width: 36px !important;
+        height: 36px !important;
+        border-radius: 8px !important;
+      }
+
+      .tagline {
+        display: none;
+      }
+
+      .badge {
+        display: none;
+      }
+
+      /* Sidebar becomes a slide-in drawer */
+      .dashboard {
+        grid-template-columns: 1fr;
+        position: relative;
+      }
+
+      .left-sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        width: 300px;
+        max-width: 85vw;
+        z-index: 200;
+        background: var(--panel-2);
+        border-right: 1px solid var(--border);
+        transform: translateX(-100%);
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        overflow-y: auto;
+        overflow-x: hidden;
+        padding-top: env(safe-area-inset-top);
+        /* Allow sidebar to scroll independently */
+        -webkit-overflow-scrolling: touch;
+      }
+
+      .left-sidebar.open {
+        transform: translateX(0);
+        box-shadow: 4px 0 32px rgba(0,0,0,0.6);
+      }
+
+      /* Right main takes full width */
+      .right-main {
+        grid-column: 1;
+        width: 100%;
+      }
+
+      /* Auth gateway card */
+      .auth-gateway-card {
+        margin: 16px 12px;
+        padding: 28px 18px;
+        border-radius: 12px;
+      }
+
+      .auth-gateway-card h2 {
+        font-size: 18px;
+      }
+
+      .auth-gateway-card p {
+        font-size: 13px;
+      }
+
+      /* Workflow stepper hidden on mobile */
+      .status-steps {
+        display: none;
+      }
+
+      /* Right nav bar compact */
+      .right-nav-bar {
+        padding: 8px 10px;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .right-tab-btn {
+        font-size: 12px;
+        padding: 5px 10px;
+      }
+
+      .right-tabs-row {
+        gap: 3px;
+        flex-wrap: wrap;
+      }
+
+      /* Stepper compact — horizontally scrollable */
+      .stepper {
+        padding: 10px 12px;
+        gap: 0;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        flex-wrap: nowrap;
+      }
+
+      .step-label {
+        font-size: 10px;
+      }
+
+      .step-dot {
+        width: 22px;
+        height: 22px;
+        font-size: 10px;
+      }
+
+      /* Results grid single column */
+      .results-top {
+        grid-template-columns: 1fr;
+      }
+
+      .compare-grid {
+        grid-template-columns: 1fr;
+      }
+
+      /* Signal grid single column */
+      .signal-grid {
+        grid-template-columns: 1fr;
+      }
+
+      /* Right content padding */
+      .right-content {
+        padding: 10px 12px;
+      }
+
+      /* Save row stacked */
+      .save-row input[type=text] {
+        min-width: 0;
+        width: 100%;
+      }
+
+      /* Save row flex stacked */
+      .save-row {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      /* Auth user chip compact */
+      .auth-name {
+        display: none;
+      }
+
+      .auth-signout {
+        font-size: 11px;
+      }
+
+      /* AI tabs wrapping */
+      .ai-tabs {
+        flex-wrap: wrap;
+        gap: 4px;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      .ai-tab-btn {
+        font-size: 11px;
+        padding: 5px 10px;
+      }
+
+      /* Refresh button compact */
+      .refresh-prices-btn {
+        font-size: 11px;
+        padding: 6px 10px;
+      }
+
+      /* Table scroll – wrap all tables */
+      .right-pane {
+        overflow-x: hidden;
+      }
+
+      /* Scrollable table containers */
+      .portfolio-table-wrap,
+      .cmp-table-wrap {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        border-radius: 8px;
+      }
+
+      .portfolio-table-wrap table,
+      .cmp-table-wrap .cmp-table {
+        min-width: 500px;
+      }
+
+      /* Rule row stacked on mobile */
+      .rule-row {
+        flex-direction: column;
+        gap: 0;
+      }
+
+      /* Cmp summary grid 2-col */
+      .cmp-summary-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      /* Playbook text readable on mobile */
+      .playbook {
+        font-size: 12px;
+        padding: 12px 14px;
+      }
+
+      /* Comparison table scroll */
+      #paneComparison {
+        overflow-x: hidden;
+      }
+    }
+
+    /* ── Small mobile (≤ 480px) ── */
+    @media (max-width: 480px) {
+      header {
+        padding: 7px 10px;
+      }
+
+      h1 {
+        font-size: 13px;
+      }
+
+      .brand-logo {
+        width: 30px !important;
+        height: 30px !important;
+        border-radius: 6px !important;
+      }
+
+      .auth-gateway-card {
+        margin: 12px 8px;
+        padding: 24px 14px;
+      }
+
+      .auth-gateway-card h2 {
+        font-size: 16px;
+      }
+
+      .gateway-icon {
+        font-size: 36px;
+        margin-bottom: 10px;
+      }
+
+      .right-content {
+        padding: 8px 10px;
+      }
+
+      .cmp-summary-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .cmp-card-value {
+        font-size: 16px;
+      }
+
+      .right-tab-btn {
+        font-size: 11px;
+        padding: 4px 8px;
+      }
+
+      /* Signal cards full width */
+      .signal-grid {
+        grid-template-columns: 1fr;
+      }
+
+      /* Sector chips more compact */
+      .chip {
+        font-size: 10px;
+        padding: 4px 8px;
+      }
+
+      /* Risk buttons compact */
+      .risk-btn {
+        font-size: 10px;
+        padding: 6px 2px;
+      }
+
+      /* Build button */
+      .build-btn {
+        font-size: 12px;
+        padding: 10px;
+      }
+    }
   </style>
 </head>
 
@@ -1598,8 +2001,12 @@
 
     <header>
       <div class="brand">
-        <img src="/static/logo.png" alt="QuantSys Logo"
-          style="width:64px; height:64px; border-radius:14px; object-fit:cover; box-shadow: 0 2px 10px rgba(0,0,0,0.5);">
+        <!-- Hamburger toggle: only visible on mobile via CSS -->
+        <button class="sidebar-toggle-btn" id="sidebarToggleBtn" aria-label="Toggle sidebar" aria-expanded="false">
+          ☰
+        </button>
+        <img src="/static/logo.png" alt="QuantSys Logo" class="brand-logo"
+          style="width:48px; height:48px; border-radius:12px; object-fit:cover; box-shadow: 0 2px 10px rgba(0,0,0,0.5); flex-shrink:0;">
         <div>
           <h1>QuantSys</h1>
           <div class="tagline">Self-Refinement Portal — allocation &amp; risk-rule modelling for the Indian equity
@@ -1617,6 +2024,9 @@
         </div>
       </div>
     </header>
+
+    <!-- Mobile sidebar overlay backdrop -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
     <!-- AUTHENTICATION GATEWAY CARD -->
     <div id="authGateway" class="auth-gateway-card" style="display:none;">
@@ -1835,20 +2245,23 @@
 
               <!-- Per-stock table -->
               <div class="cmp-section-title">📋 Stock-by-Stock Breakdown</div>
-              <table class="cmp-table" id="cmpStockTable">
-                <thead>
-                  <tr>
-                    <th>Stock</th>
-                    <th>Sector</th>
-                    <th>Proposed ₹</th>
-                    <th>Actual Value</th>
-                    <th>P&amp;L</th>
-                    <th>Drift %</th>
-                    <th>Allocation</th>
-                  </tr>
-                </thead>
-                <tbody id="cmpStockBody"></tbody>
-              </table>
+              <!-- Wrapped for horizontal scroll on mobile -->
+              <div class="cmp-table-wrap">
+                <table class="cmp-table" id="cmpStockTable">
+                  <thead>
+                    <tr>
+                      <th>Stock</th>
+                      <th>Sector</th>
+                      <th>Proposed ₹</th>
+                      <th>Actual Value</th>
+                      <th>P&amp;L</th>
+                      <th>Drift %</th>
+                      <th>Allocation</th>
+                    </tr>
+                  </thead>
+                  <tbody id="cmpStockBody"></tbody>
+                </table>
+              </div>
 
               <!-- Sector allocation -->
               <div class="cmp-section-title">🏗 Sector Allocation: Proposed vs Actual</div>
@@ -1865,6 +2278,80 @@
   </div>
 
   <script>
+    // ── Mobile Sidebar Toggle ──────────────────────────────────────────────────
+    (function () {
+      const toggleBtn = document.getElementById('sidebarToggleBtn');
+      const sidebar   = document.querySelector('.left-sidebar');
+      const overlay   = document.getElementById('sidebarOverlay');
+
+      if (!toggleBtn || !sidebar || !overlay) return;
+
+      function openSidebar() {
+        sidebar.classList.add('open');
+        overlay.classList.add('active');
+        toggleBtn.setAttribute('aria-expanded', 'true');
+        toggleBtn.textContent = '✕';
+        document.body.style.overflow = 'hidden';
+      }
+
+      function closeSidebar() {
+        sidebar.classList.remove('open');
+        overlay.classList.remove('active');
+        toggleBtn.setAttribute('aria-expanded', 'false');
+        toggleBtn.textContent = '☰';
+        document.body.style.overflow = '';
+      }
+
+      toggleBtn.addEventListener('click', function () {
+        if (sidebar.classList.contains('open')) {
+          closeSidebar();
+        } else {
+          openSidebar();
+        }
+      });
+
+      // Close when tapping the overlay backdrop
+      overlay.addEventListener('click', closeSidebar);
+
+      // Close on Escape key
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && sidebar.classList.contains('open')) {
+          closeSidebar();
+        }
+      });
+
+      // Close sidebar automatically when a tab button in the nav is clicked (mobile UX)
+      document.querySelectorAll('.right-tab-btn').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          if (window.innerWidth <= 768 && sidebar.classList.contains('open')) {
+            closeSidebar();
+          }
+        });
+      });
+
+      // Close sidebar automatically when Build button is clicked
+      const buildBtn = document.getElementById('buildBtn');
+      if (buildBtn) {
+        buildBtn.addEventListener('click', function () {
+          if (window.innerWidth <= 768) {
+            closeSidebar();
+          }
+        });
+      }
+
+      // On window resize: if going back to desktop, reset sidebar state
+      window.addEventListener('resize', function () {
+        if (window.innerWidth > 768) {
+          sidebar.classList.remove('open');
+          overlay.classList.remove('active');
+          toggleBtn.setAttribute('aria-expanded', 'false');
+          toggleBtn.textContent = '☰';
+          document.body.style.overflow = '';
+        }
+      });
+    })();
+    // ── End Mobile Sidebar Toggle ─────────────────────────────────────────────
+
     try {
 
       const SECTORS = {
@@ -2092,24 +2579,30 @@
           '</div>' +
           '</div>' +
           '<div class="section-title">Large-cap stock picks — Live Prices Auto-Loaded</div>' +
+          '<div class="portfolio-table-wrap">' +
           '<table>' +
           '<thead><tr><th>Stock</th><th>Sector</th><th>Allocated</th><th>Live / Entry Price</th><th>Qty</th><th>Stop-loss</th></tr></thead>' +
           '<tbody>' + stockRows + '</tbody>' +
           '</table>' +
+          '</div>' +
           '<div class="section-title">Diversified sleeves</div>' +
+          '<div class="portfolio-table-wrap">' +
           '<table><tbody>' +
           '<tr class="instrument-row"><td><div class="ticker-cell">Nifty Midcap 150 Index Fund/ETF</div></td><td style="font-family:\'IBM Plex Mono\';">' + inr(midAmt) + '</td></tr>' +
           '<tr class="instrument-row"><td><div class="ticker-cell">Nifty Smallcap 250 Index Fund/ETF</div></td><td style="font-family:\'IBM Plex Mono\';">' + inr(smallAmt) + '</td></tr>' +
           '<tr class="instrument-row"><td><div class="ticker-cell">Liquid Fund / Savings — Market Buffer</div></td><td style="font-family:\'IBM Plex Mono\';">' + inr(buffer) + '</td></tr>' +
           '</tbody></table>' +
+          '</div>' +
 
           '<div class="section-title">Stop-loss &amp; rebalancing playbook</div>' +
+          '<div class="portfolio-table-wrap">' +
           '<table class="rebalance-table"><thead><tr><th>Sleeve</th><th>Target weight</th><th>Rebalance if drift beyond</th></tr></thead><tbody>' +
           '<tr><td>Large-cap stocks</td><td style="font-family:\'IBM Plex Mono\';">' + risk.large + '%</td><td class="drift-ok" id="driftLabel1">±' + driftPct + ' pp</td></tr>' +
           '<tr><td>Mid-cap index/ETF</td><td style="font-family:\'IBM Plex Mono\';">' + risk.mid + '%</td><td class="drift-ok" id="driftLabel2">±' + driftPct + ' pp</td></tr>' +
           '<tr><td>Small-cap index/ETF</td><td style="font-family:\'IBM Plex Mono\';">' + risk.small + '%</td><td class="drift-ok" id="driftLabel3">±' + driftPct + ' pp</td></tr>' +
           '<tr><td>Buffer (liquid/cash)</td><td style="font-family:\'IBM Plex Mono\';">25%</td><td class="drift-ok" id="driftLabel4">±' + driftPct + ' pp</td></tr>' +
           '</tbody></table>' +
+          '</div>' +
 
           '<div class="playbook" id="playbookText"></div>';
 
