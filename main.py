@@ -81,6 +81,7 @@ class PortfolioRequest(BaseModel):
     amount: float
     risk: str
     sectors: list[str]
+    sector_weights: dict[str, float] = {}
     stocks: list[dict] = []  # Optional: [{"ticker": "HDFCBANK", "price": 1800, "allocated": 50000}]
 
 # Initialize Gemini Client
@@ -282,6 +283,7 @@ The user wants to invest {req.amount} INR with a {req.risk} risk profile.
 Sectors of interest: {', '.join(req.sectors) if req.sectors else 'All sectors'}.
 {live_price_context}
 Portfolio stocks (NSE tickers): {stock_tickers}
+{f'Relative sector weight bias for this risk profile (use as a prior — over/under-weight sectors relative to these values, but keep weights within +/- 10 percentage points of the prior and only among the listed sectors): ' + str(req.sector_weights) if req.sector_weights else ''}
 
 Provide a full analysis covering:
 1. Market & sector outlook

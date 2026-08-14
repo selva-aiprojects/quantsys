@@ -2453,6 +2453,16 @@
         aggressive: { large: 40, mid: 30, small: 30 }
       };
 
+      // Relative large-cap weight bias per sector, keyed by risk profile.
+      // Conservative favours defensive/staple sectors; aggressive favours
+      // growth/momentum sectors. Weights are re-normalised over the user's
+      // selected sectors at build time, so they only express relative tilt.
+      const SECTOR_WEIGHTS = {
+        conservative: { banking: 0.26, fmcg: 0.24, pharma: 0.20, energy: 0.16, it: 0.09, auto: 0.05 },
+        moderate:     { banking: 0.20, it: 0.20, energy: 0.20, fmcg: 0.15, auto: 0.15, pharma: 0.10 },
+        aggressive:   { it: 0.30, auto: 0.25, energy: 0.20, banking: 0.12, pharma: 0.08, fmcg: 0.05 }
+      };
+
       let selectedRisk = "moderate";
       let selectedSectors = new Set(["banking", "it", "fmcg"]);
 
@@ -2596,7 +2606,10 @@
         const smallAmt = deployable * risk.small / 100;
 
         const sectorsArr = Array.from(selectedSectors);
-        const perSector = largeAmt / sectorsArr.length;
+        const sectorWeights = SECTOR_WEIGHTS[selectedRisk] || {};
+        const totalSectorWeight = sectorsArr.reduce(function (s, key) {
+          return s + (sectorWeights[key] || (1 / sectorsArr.length));
+        }, 0) || 1;
 
         const stopLossPct = parseFloat(document.getElementById('stopLossPct').value) || 15;
         const driftPct = parseFloat(document.getElementById('driftPct').value) || 5;
@@ -2605,6 +2618,8 @@
         let stockRows = '';
         sectorsArr.forEach(function (key) {
           const sector = SECTORS[key];
+          const weight = (sectorWeights[key] || (1 / sectorsArr.length)) / totalSectorWeight;
+          const perSector = largeAmt * weight;
           const perStock = perSector / sector.stocks.length;
           sector.stocks.forEach(function (s, idx) {
             const rowId = key + '-' + idx;
@@ -2648,7 +2663,7 @@
           '</div>' +
           '<div class="section-title" id="stockSectionTitle">Large-cap stock picks — Live Prices Auto-Loaded ' +
           '<span id="allocationSourceNote" style="color:var(--muted);font-size:11px;font-weight:400;">' +
-          (applyAlloc ? '(default equal-weight split — building AI-optimized combination…)' : '(loaded saved combination — refreshing AI insights…)') +
+          (applyAlloc ? '(risk-weighted sector tilt — building AI-optimized combination…)' : '(loaded saved combination — refreshing AI insights…)') +
           '</span></div>' +
           '<div class="portfolio-table-wrap">' +
           '<table>' +
@@ -2706,17 +2721,22 @@
         triggerAI(applyAlloc);
       }
 
-      // Replace the static equal-weight large-cap table with Gemini's recommended_allocation.
-      // Returns true if applied, false if the AI response had nothing usable (caller should
-      // then leave the existing equal-weight table in place as a safe fallback).
-      function applyAIAllocation(allocations) {
-        if (!window.lastBuild) return false;
-        if (!Array.isArray(allocations) || allocations.length === 0) return false;
+    // Replace the static equal-weight large-cap table with Gemini's recommended_allocation.
+    // excludeTickers: a Set of tickers flagged SELL across the AI signal arrays — these are
+    // filtered out so only positive-conviction ("profitable") scripts remain listed.
+    // Returns true if applied, false if the AI response had nothing usable (caller should
+    // then leave the existing equal-weight table in place as a safe fallback).
+    function applyAIAllocation(allocations, excludeTickers) {
+      if (!window.lastBuild) return false;
+      if (!Array.isArray(allocations) || allocations.length === 0) return false;
 
-        const valid = allocations.filter(function (a) {
-          return a && a.ticker && typeof a.allocation_pct === 'number' && a.allocation_pct > 0;
-        });
-        if (valid.length === 0) return false;
+      excludeTickers = excludeTickers || new Set();
+      const valid = allocations.filter(function (a) {
+        if (!a || !a.ticker || typeof a.allocation_pct !== 'number' || a.allocation_pct <= 0) return false;
+        const t = String(a.ticker).replace(/\.NS$/i, '').toUpperCase();
+        return !excludeTickers.has(t);
+      });
+      if (valid.length === 0) return false;
 
         const totalPct = valid.reduce(function (s, a) { return s + a.allocation_pct; }, 0);
         if (!(totalPct > 0)) return false;
@@ -2751,6 +2771,26 @@
         window.lastBuild.aiAllocationApplied = true;
         window.lastBuild.aiAllocationRowIds = rowIds;
         return true;
+      }
+
+      // Collect tickers the AI explicitly flagged SELL across all signal arrays.
+      // These are excluded from the recommended allocation so only positively
+      // rated ("profitable") scripts are listed in the portfolio.
+      function buildExcludeSet(aiData) {
+        const exclude = new Set();
+        function addSignals(arr) {
+          if (!Array.isArray(arr)) return;
+          arr.forEach(function (sig) {
+            if (sig && sig.ticker && String(sig.action || '').toUpperCase() === 'SELL') {
+              const t = String(sig.ticker).replace(/\.NS$/i, '').toUpperCase();
+              if (t) exclude.add(t);
+            }
+          });
+        }
+        addSignals(aiData.sell_signals);
+        addSignals(aiData.short_term_signals);
+        addSignals(aiData.long_term_signals);
+        return exclude;
       }
 
       // ── Top loader helpers ──
@@ -3402,6 +3442,14 @@
             amount: window.lastBuild.amount,
             risk: window.lastBuild.risk,
             sectors: window.lastBuild.sectorsArr.map(k => SECTORS[k].name),
+            sector_weights: (function () {
+              const w = SECTOR_WEIGHTS[window.lastBuild.risk] || {};
+              const out = {};
+              window.lastBuild.sectorsArr.forEach(function (k) {
+                out[SECTORS[k].name] = w[k] || 0;
+              });
+              return out;
+            })(),
             stocks: liveStocks.map(s => ({ ticker: s.ticker, price: s.price, allocated: s.allocated }))
           };
 
@@ -3446,7 +3494,8 @@
           // ── Apply the AI's recommended stock combination (fresh builds only) ──
           const noteEl = document.getElementById('allocationSourceNote');
           if (applyAllocation) {
-            const applied = applyAIAllocation(aiData.recommended_allocation);
+            const excludeTickers = buildExcludeSet(aiData);
+            const applied = applyAIAllocation(aiData.recommended_allocation, excludeTickers);
             if (applied) {
               setAIStep(2, 'active', 'Applying AI-optimized stock combination...');
               try {
@@ -3455,7 +3504,7 @@
                 console.error('Live price refresh for AI allocation failed:', e);
               }
               setAIStep(2, 'done', 'AI analysis complete — combination applied');
-              if (noteEl) noteEl.textContent = 'AI-optimized combination (Gemini) — weights reflect model conviction, not an equal split.';
+               if (noteEl) noteEl.textContent = 'AI-optimized combination (Gemini) — risk-weighted by sector and filtered to positive-conviction scripts.';
             } else if (noteEl) {
               noteEl.textContent = 'AI combination unavailable this run — kept default equal-weight split.';
             }
