@@ -1,0 +1,208 @@
+diff --git a/index.html b/index.html
+index 917df9c..59c48b6 100644
+--- a/index.html
++++ b/index.html
+@@ -2513,7 +2513,9 @@
+         });
+       }
+ 
+-      function buildPortfolio() {
++      function buildPortfolio(opts) {
++        opts = opts || {};
++        const applyAlloc = opts.applyAIAllocation !== false;
+         const amountInput = document.getElementById('amount');
+         const amount = parseFloat(amountInput.value) || 0;
+         if (amount < 10000) { alert('Enter an amount of at least ₹10,000'); return; }
+@@ -2578,11 +2580,14 @@
+           '</div>' +
+           '</div>' +
+           '</div>' +
+-          '<div class="section-title">Large-cap stock picks — Live Prices Auto-Loaded</div>' +
++          '<div class="section-title" id="stockSectionTitle">Large-cap stock picks — Live Prices Auto-Loaded ' +
++          '<span id="allocationSourceNote" style="color:var(--muted);font-size:11px;font-weight:400;">' +
++          (applyAlloc ? '(default equal-weight split — building AI-optimized combination…)' : '(loaded saved combination — refreshing AI insights…)') +
++          '</span></div>' +
+           '<div class="portfolio-table-wrap">' +
+           '<table>' +
+           '<thead><tr><th>Stock</th><th>Sector</th><th>Allocated</th><th>Live / Entry Price</th><th>Qty</th><th>Stop-loss</th></tr></thead>' +
+-          '<tbody>' + stockRows + '</tbody>' +
++          '<tbody id="stockTableBody">' + stockRows + '</tbody>' +
+           '</table>' +
+           '</div>' +
+           '<div class="section-title">Diversified sleeves</div>' +
+@@ -2632,7 +2637,54 @@
+         setToastMessage('⏳', 'Fetching live prices & AI insights...');
+ 
+         // Auto-trigger AI
+-        triggerAI();
++        triggerAI(applyAlloc);
++      }
++
++      // Replace the static equal-weight large-cap table with Gemini's recommended_allocation.
++      // Returns true if applied, false if the AI response had nothing usable (caller should
++      // then leave the existing equal-weight table in place as a safe fallback).
++      function applyAIAllocation(allocations) {
++        if (!window.lastBuild) return false;
++        if (!Array.isArray(allocations) || allocations.length === 0) return false;
++
++        const valid = allocations.filter(function (a) {
++          return a && a.ticker && typeof a.allocation_pct === 'number' && a.allocation_pct > 0;
++        });
++        if (valid.length === 0) return false;
++
++        const totalPct = valid.reduce(function (s, a) { return s + a.allocation_pct; }, 0);
++        if (!(totalPct > 0)) return false;
++
++        const largeAmt = window.lastBuild.largeAmt;
++        let rows = '';
++        const rowIds = [];
++        valid.forEach(function (a, idx) {
++          const rowId = 'ai-' + idx;
++          rowIds.push(rowId);
++          const normPct = (a.allocation_pct / totalPct) * 100;
++          const amt = largeAmt * normPct / 100;
++          const ticker = String(a.ticker).replace(/\.NS$/i, '').toUpperCase();
++          const sectorLabel = a.sector ? String(a.sector) : '';
++          const reason = a.reason ? escapeHtml(String(a.reason)) : '';
++          rows += '<tr>' +
++            '<td><div class="ticker-cell">' + escapeHtml(ticker) + '<span class="live-price-badge" id="livebadge-' + rowId + '" style="display:none;"><span class="live-dot"></span><span id="liveprice-' + rowId + '"></span></span></div>' +
++            (reason ? '<div class="name-cell">' + reason + '</div>' : '') + '</td>' +
++            '<td style="color:var(--muted);font-size:12px;">' + escapeHtml(sectorLabel) + '</td>' +
++            '<td style="font-family:\'IBM Plex Mono\';">' + inr(amt) + ' <span style="color:var(--muted);font-size:11px;">(' + normPct.toFixed(1) + '%)</span></td>' +
++            '<td><input class="price-input" type="number" min="1" value="1000" data-amt="' + amt + '" data-rowid="' + rowId + '" data-ticker="' + ticker + '.NS"></td>' +
++            '<td class="qty-cell" id="qty-' + rowId + '">1</td>' +
++            '<td class="stop-cell" id="stop-' + rowId + '">—</td>' +
++            '</tr>';
++        });
++
++        const tbody = document.getElementById('stockTableBody');
++        if (!tbody) return false;
++        tbody.innerHTML = rows;
++        tbody.querySelectorAll('.price-input').forEach(updateQtyForRow);
++
++        window.lastBuild.aiAllocationApplied = true;
++        window.lastBuild.aiAllocationRowIds = rowIds;
++        return true;
+       }
+ 
+       // ── Top loader helpers ──
+@@ -2849,7 +2901,9 @@
+         document.getElementById('driftPct').value = latest.driftPct;
+         document.getElementById('cadence').value = latest.cadence;
+ 
+-        buildPortfolio();
++        // applyAIAllocation:false — a fresh AI call still refreshes analysis/signals/prices,
++        // but must not reshuffle the tickers/weights that were actually saved.
++        buildPortfolio({ applyAIAllocation: false });
+ 
+         latest.stocks.forEach(function (s) {
+           const input = document.querySelector('.price-input[data-rowid="' + s.rowId + '"]');
+@@ -3209,7 +3263,11 @@
+       window.renderComparison = renderComparison;
+ 
+       // Unified AI trigger — called automatically after buildPortfolio()
+-      async function triggerAI() {
++      // applyAllocation: when true (fresh "Build model" flow) the AI's recommended_allocation
++      // replaces the equal-weight stock table. When false (loading a saved portfolio) the AI
++      // still refreshes prices/analysis/signals, but the saved stock combination is left intact.
++      async function triggerAI(applyAllocation) {
++        if (applyAllocation === undefined) applyAllocation = true;
+         if (!window.lastBuild) return;
+ 
+         const aiContent = document.getElementById('aiContent');
+@@ -3315,6 +3373,26 @@
+           setAIStep(2, 'done', 'AI analysis complete — signals received ✓');
+           setAIProgressBar(80);
+ 
++          // ── Apply the AI's recommended stock combination (fresh builds only) ──
++          const noteEl = document.getElementById('allocationSourceNote');
++          if (applyAllocation) {
++            const applied = applyAIAllocation(aiData.recommended_allocation);
++            if (applied) {
++              setAIStep(2, 'active', 'Applying AI-optimized stock combination...');
++              try {
++                await fetchAndApplyLivePrices(false);
++              } catch (e) {
++                console.error('Live price refresh for AI allocation failed:', e);
++              }
++              setAIStep(2, 'done', 'AI analysis complete — combination applied ✓');
++              if (noteEl) noteEl.textContent = '✨ AI-optimized combination (Gemini) — weights reflect model conviction, not an equal split.';
++            } else if (noteEl) {
++              noteEl.textContent = '⚠ AI combination unavailable this run — kept default equal-weight split.';
++            }
++          } else if (noteEl) {
++            noteEl.textContent = 'Loaded saved combination — insights refreshed ✓';
++          }
++
+           // ── Step 3: Building signals & insights ──
+           setAIStep(3, 'active', 'Rendering market analysis & trading signals...');
+           if (headerEl) headerEl.textContent = '📊 Building Insights & Signals';
+diff --git a/main.py b/main.py
+index 1d9141b..45aa286 100644
+--- a/main.py
++++ b/main.py
+@@ -274,6 +274,8 @@ def ai_predict(req: PortfolioRequest, user: dict = Depends(get_current_user)):
+     else:
+         stock_tickers = "stocks from sectors: " + ", ".join(req.sectors)
+ 
++    candidate_tickers = [s["ticker"] for s in req.stocks] if req.stocks else []
++
+     prompt = f"""
+ You are an expert AI quantitative analyst and portfolio manager for Indian equity markets.
+ The user wants to invest {req.amount} INR with a {req.risk} risk profile.
+@@ -284,11 +286,26 @@ Portfolio stocks (NSE tickers): {stock_tickers}
+ Provide a full analysis covering:
+ 1. Market & sector outlook
+ 2. Corporate guidance from key companies in these sectors
+-3. Overall predictions & allocation strategy
++3. Overall predictions & allocation strategy — this MUST include a concrete recommended_allocation
++   (see schema below) that reweights the candidate stocks by conviction. Do not default to an
++   equal split unless your analysis genuinely supports equal weighting; favour stocks with
++   stronger relative momentum, valuation, or guidance and underweight/exclude weaker ones.
+ 4. SELL SIGNALS — stocks that are overvalued, technically weak, or facing headwinds
+ 5. SHORT-TERM (1–4 weeks) momentum-based BUY/SELL/HOLD for each portfolio stock
+ 6. LONG-TERM (6–18 months) fundamental conviction ratings for each portfolio stock
+ 
++Constraints for "recommended_allocation" specifically:
++- Only use tickers from this exact candidate list (no others, no invented tickers): {candidate_tickers if candidate_tickers else 'use well-known NSE large-cap tickers for the given sectors'}.
++- You may assign 0% (i.e. omit) a candidate you have no conviction in, but do not invent tickers
++  outside the candidate list.
++- allocation_pct values across the array must sum to exactly 100.
++- This allocation represents ONLY the large-cap stock-picking sleeve of the portfolio (not the
++  mid-cap/small-cap ETF sleeves or cash buffer), so weight purely by relative conviction among
++  the candidates.
++- target_price in every signal array must be a real numeric estimate derived from the live price
++  given above (price * expected move), never the literal value null — omit the key entirely for
++  a stock only if truly no live price was supplied for it.
++
+ Return ONLY a valid JSON object with these exact keys (no markdown, no extra text):
+ {{
+     "market_analysis": "detailed sector & macro analysis string",
+@@ -298,15 +315,15 @@ Return ONLY a valid JSON object with these exact keys (no markdown, no extra tex
+         {{"ticker": "TICKER.NS", "sector": "SectorName", "allocation_pct": 20, "reason": "brief reason"}}
+     ],
+     "sell_signals": [
+-        {{"ticker": "TICKER", "action": "SELL", "reason": "concise reason", "target_price": null}}
++        {{"ticker": "TICKER", "action": "SELL", "reason": "concise reason", "target_price": 1234.5}}
+     ],
+     "sell_analysis": "string — overall narrative for why sell signals were generated now",
+     "short_term_signals": [
+-        {{"ticker": "TICKER", "action": "BUY|SELL|HOLD", "reason": "momentum/news rationale", "target_price": null}}
++        {{"ticker": "TICKER", "action": "BUY|SELL|HOLD", "reason": "momentum/news rationale", "target_price": 1234.5}}
+     ],
+     "short_term_analysis": "string — short-term market environment overview",
+     "long_term_signals": [
+-        {{"ticker": "TICKER", "action": "STRONG BUY|BUY|HOLD|ACCUMULATE ON DIPS|SELL", "reason": "fundamental thesis", "target_price": null}}
++        {{"ticker": "TICKER", "action": "STRONG BUY|BUY|HOLD|ACCUMULATE ON DIPS|SELL", "reason": "fundamental thesis", "target_price": 1234.5}}
+     ],
+     "long_term_analysis": "string — long-term fundamental thesis for the portfolio"
+ }}
+@@ -315,6 +332,8 @@ Rules:
+ - Use exact NSE ticker symbols (e.g. HDFCBANK, TCS, INFY) in signal arrays — no .NS suffix.
+ - recommended_allocation allocation_pct values must sum to 100.
+ - If live prices were provided, factor them into your target_price estimates.
++- target_price must always be a number, never null/None — compute it from the live price and your
++  directional view; the 1234.5 above is just a placeholder to show the field is numeric.
+ - Every signal array must have one entry per portfolio stock at minimum.
+ - Output MUST be valid JSON only.
+ """

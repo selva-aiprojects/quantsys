@@ -2513,7 +2513,9 @@
         });
       }
 
-      function buildPortfolio() {
+      function buildPortfolio(opts) {
+        opts = opts || {};
+        const applyAlloc = opts.applyAIAllocation !== false;
         const amountInput = document.getElementById('amount');
         const amount = parseFloat(amountInput.value) || 0;
         if (amount < 10000) { alert('Enter an amount of at least ₹10,000'); return; }
@@ -2578,11 +2580,14 @@
           '</div>' +
           '</div>' +
           '</div>' +
-          '<div class="section-title">Large-cap stock picks — Live Prices Auto-Loaded</div>' +
+          '<div class="section-title" id="stockSectionTitle">Large-cap stock picks — Live Prices Auto-Loaded ' +
+          '<span id="allocationSourceNote" style="color:var(--muted);font-size:11px;font-weight:400;">' +
+          (applyAlloc ? '(default equal-weight split — building AI-optimized combination…)' : '(loaded saved combination — refreshing AI insights…)') +
+          '</span></div>' +
           '<div class="portfolio-table-wrap">' +
           '<table>' +
           '<thead><tr><th>Stock</th><th>Sector</th><th>Allocated</th><th>Live / Entry Price</th><th>Qty</th><th>Stop-loss</th></tr></thead>' +
-          '<tbody>' + stockRows + '</tbody>' +
+          '<tbody id="stockTableBody">' + stockRows + '</tbody>' +
           '</table>' +
           '</div>' +
           '<div class="section-title">Diversified sleeves</div>' +
@@ -2632,7 +2637,54 @@
         setToastMessage('⏳', 'Fetching live prices & AI insights...');
 
         // Auto-trigger AI
-        triggerAI();
+        triggerAI(applyAlloc);
+      }
+
+      // Replace the static equal-weight large-cap table with Gemini's recommended_allocation.
+      // Returns true if applied, false if the AI response had nothing usable (caller should
+      // then leave the existing equal-weight table in place as a safe fallback).
+      function applyAIAllocation(allocations) {
+        if (!window.lastBuild) return false;
+        if (!Array.isArray(allocations) || allocations.length === 0) return false;
+
+        const valid = allocations.filter(function (a) {
+          return a && a.ticker && typeof a.allocation_pct === 'number' && a.allocation_pct > 0;
+        });
+        if (valid.length === 0) return false;
+
+        const totalPct = valid.reduce(function (s, a) { return s + a.allocation_pct; }, 0);
+        if (!(totalPct > 0)) return false;
+
+        const largeAmt = window.lastBuild.largeAmt;
+        let rows = '';
+        const rowIds = [];
+        valid.forEach(function (a, idx) {
+          const rowId = 'ai-' + idx;
+          rowIds.push(rowId);
+          const normPct = (a.allocation_pct / totalPct) * 100;
+          const amt = largeAmt * normPct / 100;
+          const ticker = String(a.ticker).replace(/\.NS$/i, '').toUpperCase();
+          const sectorLabel = a.sector ? String(a.sector) : '';
+          const reason = a.reason ? escapeHtml(String(a.reason)) : '';
+          rows += '<tr>' +
+            '<td><div class="ticker-cell">' + escapeHtml(ticker) + '<span class="live-price-badge" id="livebadge-' + rowId + '" style="display:none;"><span class="live-dot"></span><span id="liveprice-' + rowId + '"></span></span></div>' +
+            (reason ? '<div class="name-cell">' + reason + '</div>' : '') + '</td>' +
+            '<td style="color:var(--muted);font-size:12px;">' + escapeHtml(sectorLabel) + '</td>' +
+            '<td style="font-family:\'IBM Plex Mono\';">' + inr(amt) + ' <span style="color:var(--muted);font-size:11px;">(' + normPct.toFixed(1) + '%)</span></td>' +
+            '<td><input class="price-input" type="number" min="1" value="1000" data-amt="' + amt + '" data-rowid="' + rowId + '" data-ticker="' + ticker + '.NS"></td>' +
+            '<td class="qty-cell" id="qty-' + rowId + '">1</td>' +
+            '<td class="stop-cell" id="stop-' + rowId + '">—</td>' +
+            '</tr>';
+        });
+
+        const tbody = document.getElementById('stockTableBody');
+        if (!tbody) return false;
+        tbody.innerHTML = rows;
+        tbody.querySelectorAll('.price-input').forEach(updateQtyForRow);
+
+        window.lastBuild.aiAllocationApplied = true;
+        window.lastBuild.aiAllocationRowIds = rowIds;
+        return true;
       }
 
       // ── Top loader helpers ──
@@ -2849,7 +2901,9 @@
         document.getElementById('driftPct').value = latest.driftPct;
         document.getElementById('cadence').value = latest.cadence;
 
-        buildPortfolio();
+        // applyAIAllocation:false — a fresh AI call still refreshes analysis/signals/prices,
+        // but must not reshuffle the tickers/weights that were actually saved.
+        buildPortfolio({ applyAIAllocation: false });
 
         latest.stocks.forEach(function (s) {
           const input = document.querySelector('.price-input[data-rowid="' + s.rowId + '"]');
@@ -3209,7 +3263,11 @@
       window.renderComparison = renderComparison;
 
       // Unified AI trigger — called automatically after buildPortfolio()
-      async function triggerAI() {
+      // applyAllocation: when true (fresh "Build model" flow) the AI's recommended_allocation
+      // replaces the equal-weight stock table. When false (loading a saved portfolio) the AI
+      // still refreshes prices/analysis/signals, but the saved stock combination is left intact.
+      async function triggerAI(applyAllocation) {
+        if (applyAllocation === undefined) applyAllocation = true;
         if (!window.lastBuild) return;
 
         const aiContent = document.getElementById('aiContent');
@@ -3314,6 +3372,26 @@
 
           setAIStep(2, 'done', 'AI analysis complete — signals received ✓');
           setAIProgressBar(80);
+
+          // ── Apply the AI's recommended stock combination (fresh builds only) ──
+          const noteEl = document.getElementById('allocationSourceNote');
+          if (applyAllocation) {
+            const applied = applyAIAllocation(aiData.recommended_allocation);
+            if (applied) {
+              setAIStep(2, 'active', 'Applying AI-optimized stock combination...');
+              try {
+                await fetchAndApplyLivePrices(false);
+              } catch (e) {
+                console.error('Live price refresh for AI allocation failed:', e);
+              }
+              setAIStep(2, 'done', 'AI analysis complete — combination applied ✓');
+              if (noteEl) noteEl.textContent = '✨ AI-optimized combination (Gemini) — weights reflect model conviction, not an equal split.';
+            } else if (noteEl) {
+              noteEl.textContent = '⚠ AI combination unavailable this run — kept default equal-weight split.';
+            }
+          } else if (noteEl) {
+            noteEl.textContent = 'Loaded saved combination — insights refreshed ✓';
+          }
 
           // ── Step 3: Building signals & insights ──
           setAIStep(3, 'active', 'Rendering market analysis & trading signals...');

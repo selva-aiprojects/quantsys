@@ -274,6 +274,8 @@ def ai_predict(req: PortfolioRequest, user: dict = Depends(get_current_user)):
     else:
         stock_tickers = "stocks from sectors: " + ", ".join(req.sectors)
 
+    candidate_tickers = [s["ticker"] for s in req.stocks] if req.stocks else []
+
     prompt = f"""
 You are an expert AI quantitative analyst and portfolio manager for Indian equity markets.
 The user wants to invest {req.amount} INR with a {req.risk} risk profile.
@@ -284,10 +286,25 @@ Portfolio stocks (NSE tickers): {stock_tickers}
 Provide a full analysis covering:
 1. Market & sector outlook
 2. Corporate guidance from key companies in these sectors
-3. Overall predictions & allocation strategy
+3. Overall predictions & allocation strategy — this MUST include a concrete recommended_allocation
+   (see schema below) that reweights the candidate stocks by conviction. Do not default to an
+   equal split unless your analysis genuinely supports equal weighting; favour stocks with
+   stronger relative momentum, valuation, or guidance and underweight/exclude weaker ones.
 4. SELL SIGNALS — stocks that are overvalued, technically weak, or facing headwinds
 5. SHORT-TERM (1–4 weeks) momentum-based BUY/SELL/HOLD for each portfolio stock
 6. LONG-TERM (6–18 months) fundamental conviction ratings for each portfolio stock
+
+Constraints for "recommended_allocation" specifically:
+- Only use tickers from this exact candidate list (no others, no invented tickers): {candidate_tickers if candidate_tickers else 'use well-known NSE large-cap tickers for the given sectors'}.
+- You may assign 0% (i.e. omit) a candidate you have no conviction in, but do not invent tickers
+  outside the candidate list.
+- allocation_pct values across the array must sum to exactly 100.
+- This allocation represents ONLY the large-cap stock-picking sleeve of the portfolio (not the
+  mid-cap/small-cap ETF sleeves or cash buffer), so weight purely by relative conviction among
+  the candidates.
+- target_price in every signal array must be a real numeric estimate derived from the live price
+  given above (price * expected move), never the literal value null — omit the key entirely for
+  a stock only if truly no live price was supplied for it.
 
 Return ONLY a valid JSON object with these exact keys (no markdown, no extra text):
 {{
@@ -298,15 +315,15 @@ Return ONLY a valid JSON object with these exact keys (no markdown, no extra tex
         {{"ticker": "TICKER.NS", "sector": "SectorName", "allocation_pct": 20, "reason": "brief reason"}}
     ],
     "sell_signals": [
-        {{"ticker": "TICKER", "action": "SELL", "reason": "concise reason", "target_price": null}}
+        {{"ticker": "TICKER", "action": "SELL", "reason": "concise reason", "target_price": 1234.5}}
     ],
     "sell_analysis": "string — overall narrative for why sell signals were generated now",
     "short_term_signals": [
-        {{"ticker": "TICKER", "action": "BUY|SELL|HOLD", "reason": "momentum/news rationale", "target_price": null}}
+        {{"ticker": "TICKER", "action": "BUY|SELL|HOLD", "reason": "momentum/news rationale", "target_price": 1234.5}}
     ],
     "short_term_analysis": "string — short-term market environment overview",
     "long_term_signals": [
-        {{"ticker": "TICKER", "action": "STRONG BUY|BUY|HOLD|ACCUMULATE ON DIPS|SELL", "reason": "fundamental thesis", "target_price": null}}
+        {{"ticker": "TICKER", "action": "STRONG BUY|BUY|HOLD|ACCUMULATE ON DIPS|SELL", "reason": "fundamental thesis", "target_price": 1234.5}}
     ],
     "long_term_analysis": "string — long-term fundamental thesis for the portfolio"
 }}
@@ -315,6 +332,8 @@ Rules:
 - Use exact NSE ticker symbols (e.g. HDFCBANK, TCS, INFY) in signal arrays — no .NS suffix.
 - recommended_allocation allocation_pct values must sum to 100.
 - If live prices were provided, factor them into your target_price estimates.
+- target_price must always be a number, never null/None — compute it from the live price and your
+  directional view; the 1234.5 above is just a placeholder to show the field is numeric.
 - Every signal array must have one entry per portfolio stock at minimum.
 - Output MUST be valid JSON only.
 """
