@@ -4,8 +4,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>QuantSys - AI Portfolio Rebalancer</title>
-  <link rel="icon" type="image/png" href="/static/logo.png">
+  <title>SmartPortfolio - AI Portfolio Rebalancer</title>
+  <link rel="icon" type="image/svg+xml" href="/static/logo.svg">
+  <link rel="alternate icon" type="image/png" href="/static/logo.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link
     href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap"
@@ -13,18 +14,20 @@
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   <style>
     :root {
-      --bg-deep: #0A1512;
-      --panel: #12201A;
-      --panel-2: #0D1815;
-      --border: #20342A;
-      --amber: #D9A441;
-      --amber-dim: #8A6A2E;
+      --bg-deep: #060B16;
+      --panel: #0E1930;
+      --panel-2: #0A1426;
+      --border: #1B2C4A;
+      --blue: #3B82F6;
+      --blue-dim: #1D4ED8;
+      --gold: #D9A441;
+      --gold-dim: #8A6A2E;
       --teal: #3FCB8E;
       --red: #FF6B5B;
-      --text: #E9F2EC;
-      --muted: #8FA79A;
-      --muted-2: #5C7268;
-      --ink: #0A1512;
+      --text: #E7EEFC;
+      --muted: #8CA3C7;
+      --muted-2: #56698C;
+      --ink: #060B16;
     }
 
     * {
@@ -77,7 +80,7 @@
     }
 
     .ticker b {
-      color: var(--amber);
+      color: var(--blue);
       font-weight: 600;
     }
 
@@ -122,7 +125,7 @@
       width: 30px;
       height: 30px;
       border-radius: 8px;
-      background: conic-gradient(from 200deg, var(--amber), var(--teal), var(--amber));
+      background: conic-gradient(from 200deg, var(--blue), var(--teal), var(--blue));
       display: flex;
       align-items: center;
       justify-content: center;
@@ -131,6 +134,16 @@
       color: #FFFFFF;
       font-size: 13px;
       text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+    }
+
+    .brand-word-smart {
+      color: var(--muted);
+      font-weight: 500;
+    }
+
+    .brand-word-portfolio {
+      color: var(--text);
+      font-weight: 700;
     }
 
     h1 {
@@ -185,8 +198,8 @@
       width: 28px;
       height: 28px;
       border-radius: 50%;
-      background: var(--amber);
-      color: #0A1512;
+      background: var(--blue);
+      color: #060B16;
       font-family: 'Space Grotesk', sans-serif;
       font-weight: 700;
       font-size: 13px;
@@ -292,7 +305,7 @@
 
     .ai-tab-badge {
       background: var(--teal);
-      color: #0A1512;
+      color: #060B16;
       font-size: 8px;
       font-weight: 800;
       letter-spacing: 0.05em;
@@ -371,9 +384,9 @@
       transition: all 0.3s;
     }
 
-    .status-step.active .dot { background: rgba(217,164,65,0.15); border-color: var(--amber); color: var(--amber); }
+    .status-step.active .dot { background: rgba(59,130,246,0.15); border-color: var(--blue); color: var(--blue); }
     .status-step.done .dot   { background: rgba(63,203,142,0.15);  border-color: var(--teal);  color: var(--teal); }
-    .status-step.active { color: var(--amber); }
+    .status-step.active { color: var(--blue); }
     .status-step.done   { color: var(--teal); }
 
     .status-sep { color: var(--border); }
@@ -428,9 +441,9 @@
     }
 
     .step-item.active .step-dot {
-      background: rgba(217, 164, 65, 0.15);
-      border-color: var(--amber);
-      color: var(--amber);
+      background: rgba(59, 130, 246, 0.15);
+      border-color: var(--blue);
+      color: var(--blue);
     }
 
     .step-label {
@@ -441,7 +454,7 @@
       transition: color 0.3s ease;
     }
 
-    .step-item.active .step-label { color: var(--amber); }
+    .step-item.active .step-label { color: var(--blue); }
     .step-item.done .step-label { color: var(--teal); }
 
     /* Workflow sections — all stacked */
@@ -513,7 +526,7 @@
       left: 14px;
       top: 50%;
       transform: translateY(-50%);
-      color: var(--amber);
+      color: var(--blue);
       font-family: 'IBM Plex Mono';
       font-size: 16px;
     }
@@ -531,7 +544,7 @@
     }
 
     input[type=number]:focus {
-      border-color: var(--amber);
+      border-color: var(--blue);
     }
 
     .risk-row {
@@ -555,8 +568,8 @@
     }
 
     .risk-btn.active {
-      border-color: var(--amber);
-      color: var(--amber);
+      border-color: var(--blue);
+      color: var(--blue);
       background: rgba(227, 165, 66, 0.08);
     }
 
@@ -626,7 +639,7 @@
     }
 
     select:focus {
-      border-color: var(--amber);
+      border-color: var(--blue);
     }
 
     .playbook {
@@ -668,8 +681,8 @@
     .build-btn {
       width: 100%;
       margin-top: 14px;
-      background: var(--amber);
-      color: #1A1305;
+      background: var(--blue);
+      color: #071022;
       border: none;
       border-radius: 7px;
       padding: 11px;
@@ -681,7 +694,7 @@
     }
 
     .build-btn:hover {
-      background: #eeb85f;
+      background: #5B9DFB;
     }
 
     .hint {
@@ -841,25 +854,25 @@
     }
 
     .ai-tab-btn.short-tab.active {
-      background: rgba(217,164,65,0.10);
-      color: var(--amber);
-      border: 1px solid rgba(217,164,65,0.3);
+      background: rgba(59,130,246,0.10);
+      color: var(--blue);
+      border: 1px solid rgba(59,130,246,0.3);
     }
 
     .ai-tab-btn.short-tab:hover {
-      background: rgba(217,164,65,0.06);
-      color: var(--amber);
+      background: rgba(59,130,246,0.06);
+      color: var(--blue);
     }
 
     .ai-tab-btn.long-tab.active {
       background: rgba(107,168,220,0.12);
-      color: #6FA8DC;
+      color: #93C5FD;
       border: 1px solid rgba(107,168,220,0.3);
     }
 
     .ai-tab-btn.long-tab:hover {
       background: rgba(107,168,220,0.06);
-      color: #6FA8DC;
+      color: #93C5FD;
     }
 
     .ai-tab-content {
@@ -893,7 +906,7 @@
       font-family: 'IBM Plex Mono';
       font-size: 13px;
       font-weight: 600;
-      color: var(--amber);
+      color: var(--blue);
       margin-bottom: 4px;
     }
 
@@ -910,7 +923,7 @@
 
     .signal-label.sell { background: rgba(255,107,91,0.15); color: var(--red); }
     .signal-label.buy  { background: rgba(63,203,142,0.15); color: var(--teal); }
-    .signal-label.hold { background: rgba(217,164,65,0.15); color: var(--amber); }
+    .signal-label.hold { background: rgba(217,164,65,0.15); color: var(--gold); }
 
     .signal-reason {
       font-size: 12px;
@@ -1024,7 +1037,7 @@
 
     .ticker-cell {
       font-family: 'IBM Plex Mono';
-      color: var(--amber);
+      color: var(--blue);
       font-size: 12px;
     }
 
@@ -1099,12 +1112,12 @@
     }
 
     .save-row input[type=text]:focus {
-      border-color: var(--amber);
+      border-color: var(--blue);
     }
 
     .mini-btn {
-      background: var(--amber);
-      color: #1A1305;
+      background: var(--blue);
+      color: #071022;
       border: none;
       border-radius: 8px;
       padding: 10px 16px;
@@ -1116,7 +1129,7 @@
     }
 
     .mini-btn:hover {
-      background: #eeb85f;
+      background: #5B9DFB;
     }
 
     .mini-btn-outline {
@@ -1286,7 +1299,7 @@
       height: 100%;
       background: linear-gradient(90deg,
         transparent 0%,
-        var(--amber) 40%,
+        var(--blue) 40%,
         var(--teal) 60%,
         transparent 100%);
       animation: topLoaderSweep 1.4s ease-in-out infinite;
@@ -1305,12 +1318,12 @@
       left: 50%;
       transform: translateX(-50%) translateY(-60px);
       background: var(--panel);
-      border: 1px solid var(--amber);
+      border: 1px solid var(--blue);
       border-radius: 100px;
       padding: 8px 20px;
       font-family: 'IBM Plex Mono', monospace;
       font-size: 12px;
-      color: var(--amber);
+      color: var(--blue);
       z-index: 9998;
       display: flex;
       align-items: center;
@@ -1359,7 +1372,7 @@
 
     .ai-progress-step.step-active {
       opacity: 1;
-      color: var(--amber);
+      color: var(--blue);
     }
 
     .ai-progress-step.step-done {
@@ -1415,7 +1428,7 @@
     }
 
     .ai-progress-step.step-active .ai-step-sublabel {
-      color: var(--amber);
+      color: var(--blue);
     }
 
     .ai-progress-step.step-done .ai-step-sublabel {
@@ -1432,7 +1445,7 @@
 
     .ai-progress-bar {
       height: 100%;
-      background: linear-gradient(90deg, var(--amber), var(--teal));
+      background: linear-gradient(90deg, var(--blue), var(--teal));
       border-radius: 4px;
       width: 0%;
       transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
@@ -1473,7 +1486,7 @@
 
     .cmp-card-value.positive { color: var(--teal); }
     .cmp-card-value.negative { color: var(--red); }
-    .cmp-card-value.neutral  { color: var(--amber); }
+    .cmp-card-value.neutral  { color: var(--gold); }
 
     .cmp-card-sub {
       font-size: 11px;
@@ -1566,7 +1579,7 @@
 
     .cmp-badge.up   { background: rgba(63,203,142,0.12); color: var(--teal); }
     .cmp-badge.down { background: rgba(255,107,91,0.12);  color: var(--red); }
-    .cmp-badge.flat { background: rgba(217,164,65,0.12);  color: var(--amber); }
+    .cmp-badge.flat { background: rgba(217,164,65,0.12);  color: var(--gold); }
 
     .cmp-timestamp {
       font-family: 'IBM Plex Mono', monospace;
@@ -1601,8 +1614,8 @@
     }
 
     .sidebar-toggle-btn:hover {
-      border-color: var(--amber);
-      color: var(--amber);
+      border-color: var(--blue);
+      color: var(--blue);
     }
 
     /* Mobile overlay backdrop */
@@ -2005,10 +2018,10 @@
         <button class="sidebar-toggle-btn" id="sidebarToggleBtn" aria-label="Toggle sidebar" aria-expanded="false">
           ☰
         </button>
-        <img src="/static/logo.png" alt="QuantSys Logo" class="brand-logo"
+        <img src="/static/logo.svg" alt="SmartPortfolio Logo" class="brand-logo"
           style="width:48px; height:48px; border-radius:12px; object-fit:cover; box-shadow: 0 2px 10px rgba(0,0,0,0.5); flex-shrink:0;">
         <div>
-          <h1>QuantSys</h1>
+          <h1><span class="brand-word-smart">Smart</span><span class="brand-word-portfolio">Portfolio</span></h1>
           <div class="tagline">Self-Refinement Portal — allocation &amp; risk-rule modelling for the Indian equity
             market</div>
         </div>
@@ -2032,7 +2045,7 @@
     <div id="authGateway" class="auth-gateway-card" style="display:none;">
       <div class="gateway-icon">🔐</div>
       <h2>Authentication Required</h2>
-      <p>Sign in with your Google account to access QuantSys AI Portfolio Manager, build quantitative allocation models, fetch live market data, and generate AI insights.</p>
+      <p>Sign in with your Google account to access SmartPortfolio AI Portfolio Manager, build quantitative allocation models, fetch live market data, and generate AI insights.</p>
       <div id="gatewayGoogleBtn" class="gateway-btn-wrap"></div>
     </div>
 
@@ -2161,7 +2174,7 @@
           <div id="rightEmptyState" class="right-empty-state">
             <div class="right-empty-icon">⚡</div>
             <h3>Ready to Build</h3>
-            <p>Configure your model on the left and click <b style="color:var(--amber);">Build &amp; Analyse</b> to load live prices, portfolio data and AI trading signals.</p>
+            <p>Configure your model on the left and click <b style="color:var(--blue);">Build &amp; Analyse</b> to load live prices, portfolio data and AI trading signals.</p>
           </div>
 
           <!-- Portfolio pane -->
@@ -2480,11 +2493,11 @@
         const circumference = Math.PI * 60;
         const deployedLen = circumference * (deployedPct / 100);
         return '<svg width="160" height="100" viewBox="0 0 160 100">' +
-          '<path d="M 20 80 A 60 60 0 0 1 140 80" fill="none" stroke="#20342A" stroke-width="14" stroke-linecap="round"/>' +
-          '<path d="M 20 80 A 60 60 0 0 1 140 80" fill="none" stroke="#D9A441" stroke-width="14" stroke-linecap="round" ' +
+          '<path d="M 20 80 A 60 60 0 0 1 140 80" fill="none" stroke="#1B2C4A" stroke-width="14" stroke-linecap="round"/>' +
+          '<path d="M 20 80 A 60 60 0 0 1 140 80" fill="none" stroke="#3B82F6" stroke-width="14" stroke-linecap="round" ' +
           'stroke-dasharray="' + deployedLen + ' ' + circumference + '"/>' +
-          '<text x="80" y="72" text-anchor="middle" font-family="Space Grotesk" font-size="20" font-weight="700" fill="#E9F2EC">' + deployedPct + '%</text>' +
-          '<text x="80" y="88" text-anchor="middle" font-family="Inter" font-size="9" fill="#8FA79A">deployed</text>' +
+          '<text x="80" y="72" text-anchor="middle" font-family="Space Grotesk" font-size="20" font-weight="700" fill="#E7EEFC">' + deployedPct + '%</text>' +
+          '<text x="80" y="88" text-anchor="middle" font-family="Inter" font-size="9" fill="#8CA3C7">deployed</text>' +
           '</svg>';
       }
 
@@ -2564,7 +2577,7 @@
           '<div class="split-bars">' +
           '<div class="split-row">' +
           '<div class="row-top"><span>Large-cap stocks</span><b>' + inr(largeAmt) + '</b></div>' +
-          '<div class="bar-track"><div class="bar-fill" style="width:' + risk.large + '%;background:var(--amber);"></div></div>' +
+          '<div class="bar-track"><div class="bar-fill" style="width:' + risk.large + '%;background:var(--blue);"></div></div>' +
           '</div>' +
           '<div class="split-row">' +
           '<div class="row-top"><span>Mid-cap (index/ETF)</span><b>' + inr(midAmt) + '</b></div>' +
@@ -2572,7 +2585,7 @@
           '</div>' +
           '<div class="split-row">' +
           '<div class="row-top"><span>Small-cap (index/ETF)</span><b>' + inr(smallAmt) + '</b></div>' +
-          '<div class="bar-track"><div class="bar-fill" style="width:' + risk.small + '%;background:#6FA8DC;"></div></div>' +
+          '<div class="bar-track"><div class="bar-fill" style="width:' + risk.small + '%;background:#93C5FD;"></div></div>' +
           '</div>' +
           '<div class="split-row">' +
           '<div class="row-top"><span>Buffer (liquid / cash)</span><b>' + inr(buffer) + '</b></div>' +
@@ -3131,7 +3144,7 @@
         container.innerHTML = signals.map(function(sig) {
           const action = (sig.action || 'hold').toLowerCase();
           const actionClass = action.includes('sell') ? 'sell' : (action.includes('buy') ? 'buy' : 'hold');
-          const target = sig.target_price ? ('<div class="signal-target" style="color:' + (actionClass === 'sell' ? 'var(--red)' : actionClass === 'buy' ? 'var(--teal)' : 'var(--amber)') + ';">Target: ₹' + sig.target_price + '</div>') : '';
+          const target = sig.target_price ? ('<div class="signal-target" style="color:' + (actionClass === 'sell' ? 'var(--red)' : actionClass === 'buy' ? 'var(--teal)' : 'var(--gold)') + ';">Target: ₹' + sig.target_price + '</div>') : '';
           return '<div class="signal-card ' + actionClass + '">' +
             '<div class="signal-ticker">' + escapeHtml(sig.ticker || '') + '</div>' +
             '<div class="signal-label ' + actionClass + '">' + escapeHtml(sig.action || 'HOLD') + '</div>' +
