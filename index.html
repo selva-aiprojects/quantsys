@@ -2913,7 +2913,7 @@
           const amt = parseFloat(input.dataset.amt) || 0;
           const qty = Math.floor(amt / (price || 1));
           const tr = input.closest('tr');
-          const ticker = tr.querySelector('.ticker-cell').textContent;
+          const ticker = (input.dataset.ticker || '').replace(/\.NS$/i, '').toUpperCase();
           const sector = tr.children[1].textContent;
           stocks.push({ rowId: rowId, ticker: ticker, sector: sector, allocated: amt, price: price, qty: qty });
         });
