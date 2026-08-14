@@ -2913,9 +2913,10 @@
           const amt = parseFloat(input.dataset.amt) || 0;
           const qty = Math.floor(amt / (price || 1));
           const tr = input.closest('tr');
+          const originalPrice = parseFloat(input.dataset.originalPrice) || parseFloat(input.value) || 0;
           const ticker = (input.dataset.ticker || '').replace(/\.NS$/i, '').toUpperCase();
           const sector = tr.children[1].textContent;
-          stocks.push({ rowId: rowId, ticker: ticker, sector: sector, allocated: amt, price: price, qty: qty });
+          stocks.push({ rowId: rowId, ticker: ticker, sector: sector, allocated: amt, price: price, originalPrice: originalPrice, qty: qty });
         });
         return stocks;
       }
@@ -3017,7 +3018,7 @@
 
         latest.stocks.forEach(function (s) {
           const input = document.querySelector('.price-input[data-rowid="' + s.rowId + '"]');
-          if (input) { input.value = s.price; updateQtyForRow(input); }
+          if (input) { input.value = s.price; input.dataset.originalPrice = s.originalPrice || s.price; updateQtyForRow(input); }
         });
 
         activePortfolioId = id;
@@ -3173,9 +3174,12 @@
                 // Show live badge
                 const badge = document.getElementById('livebadge-' + s.rowId);
                 const liveEl = document.getElementById('liveprice-' + s.rowId);
-                if (badge && liveEl) {
+                 if (badge && liveEl) {
                   liveEl.textContent = '₹' + data.price.toFixed(2);
                   badge.style.display = 'inline-flex';
+                  if (!input.dataset.originalPrice) {
+                    input.dataset.originalPrice = data.price.toFixed(2);
+                  }
                 }
               }
             }
@@ -3269,8 +3273,9 @@
         const lb = window.lastBuild;
         const totalProposed = stocks.reduce((s, x) => s + x.allocated, 0);
         const totalActual   = stocks.reduce((s, x) => s + (x.qty * x.price), 0);
-        const totalPnL      = totalActual - totalProposed;
-        const totalPnLPct   = totalProposed > 0 ? (totalPnL / totalProposed * 100) : 0;
+        const totalOriginal = stocks.reduce((s, x) => s + (x.qty * (x.originalPrice || 0)), 0);
+        const totalPnL      = totalActual - totalOriginal;
+        const totalPnLPct   = totalOriginal > 0 ? (totalPnL / totalOriginal * 100) : 0;
         const portfolioTotal = lb.amount; // includes buffer
 
         // ── Summary cards ──
@@ -3279,7 +3284,7 @@
         document.getElementById('cmpSummaryGrid').innerHTML = [
           { label: 'Total Proposed', value: inr(totalProposed), sub: 'Large-cap sleeve only', cls: 'neutral' },
           { label: 'Current Value', value: inr(totalActual), sub: 'At live prices × qty', cls: '' },
-          { label: 'Unrealised P&L', value: pnlSign + inr(totalPnL), sub: pnlSign + totalPnLPct.toFixed(2) + '% vs proposed', cls: pnlClass },
+          { label: 'Unrealised P&L', value: pnlSign + inr(totalPnL), sub: pnlSign + totalPnLPct.toFixed(2) + '% vs original', cls: pnlClass },
           { label: 'Portfolio Value', value: inr(portfolioTotal), sub: 'Incl. mid/small/buffer', cls: '' }
         ].map(function(c) {
           return '<div class="cmp-card">' +
@@ -3295,7 +3300,8 @@
         const tbody = document.getElementById('cmpStockBody');
         tbody.innerHTML = stocks.map(function(s) {
           const actualVal = s.qty * s.price;
-          const pnl = actualVal - s.allocated;
+          const originalVal = s.qty * (s.originalPrice || 0);
+          const pnl = actualVal - originalVal;
           const pnlPct = s.allocated > 0 ? (pnl / s.allocated * 100) : 0;
           const pnlSign = pnl > 0 ? '+' : '';
           const badgeCls = pnl > 0 ? 'up' : pnl < 0 ? 'down' : 'flat';
@@ -3331,16 +3337,17 @@
         const sectorMap = {};
         stocks.forEach(function(s) {
           const sec = s.sector || 'Other';
-          if (!sectorMap[sec]) sectorMap[sec] = { proposed: 0, actual: 0 };
+          if (!sectorMap[sec]) sectorMap[sec] = { proposed: 0, actual: 0, original: 0 };
           sectorMap[sec].proposed += s.allocated;
           sectorMap[sec].actual   += s.qty * s.price;
+          sectorMap[sec].original += s.qty * (s.originalPrice || 0);
         });
         const sectorBarsEl = document.getElementById('cmpSectorBars');
         sectorBarsEl.innerHTML = Object.keys(sectorMap).map(function(sec) {
           const d = sectorMap[sec];
           const propPct   = totalAlloc > 0 ? (d.proposed / totalAlloc * 100) : 0;
           const actualPct = totalActualForPct > 0 ? (d.actual / totalActualForPct * 100) : 0;
-          const pnl = d.actual - d.proposed;
+          const pnl = d.actual - d.original;
           const pnlSign = pnl > 0 ? '+' : '';
           const col = pnl >= 0 ? 'var(--teal)' : 'var(--red)';
           return '<div style="margin-bottom:14px;">' +
