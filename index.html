@@ -5,7 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Quant Analysis - AI Smart Portfolio</title>
-  <link rel="icon" type="image/png" href="/static/logo.png">
+  <link rel="img" type="image/png" href="/static/logo.png">
   <link rel="alternate icon" type="image/png" href="/static/logo.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link
@@ -15,20 +15,23 @@
 
   <style>
     :root {
-      --bg-deep: #353f9f;
-      --panel: #350d7b;
-      --panel-2: #072969;
-      --border: #1B2C4A;
+      --bg-deep: #0F172A;
+      --panel: #1E293B;
+      --panel-2: #334155;
+      --border: #475569;
       --blue: #3B82F6;
-      --blue-dim: #1D4ED8;
+      --blue-dim: #2563EB;
+      --teal: #10B981;
       --gold: #D9A441;
-      --gold-dim: #8A6A2E;
-      --teal: #3FCB8E;
-      --red: #FF6B5B;
-      --text: #E7EEFC;
-      --muted: #8CA3C7;
-      --muted-2: #56698C;
-      --ink: #060B16;
+      --red: #EF4444;
+      --text: #E2E8F0;
+      --muted: #94A3B8;
+      --muted-2: #64748B;
+      --ink: #0F172A;
+      --blue-rgb: 59, 130, 246;
+      --teal-rgb: 16, 185, 129;
+      --gold-rgb: 217, 164, 65;
+      --red-rgb: 239, 68, 68;
     }
 
     * {
@@ -57,13 +60,15 @@
       overflow: hidden;
     }
 
+    a { color: inherit; text-decoration: none; }
+
     /* Ticker strip */
     .ticker-wrap {
       background: var(--panel-2);
       border-bottom: 1px solid var(--border);
       overflow: hidden;
       white-space: nowrap;
-      padding: 8px 0;
+      padding: 6px 0;
     }
 
     .ticker {
@@ -71,7 +76,7 @@
       padding-left: 100%;
       animation: scroll 28s linear infinite;
       font-family: 'IBM Plex Mono', monospace;
-      font-size: 12px;
+      font-size: 11.5px;
       letter-spacing: 0.04em;
       color: var(--muted);
     }
@@ -106,7 +111,7 @@
     }
 
     header {
-      padding: 8px 20px;
+      padding: 10px 20px;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -114,6 +119,7 @@
       border-bottom: 1px solid var(--border);
       flex-shrink: 0;
       gap: 12px;
+      background: linear-gradient(135deg, var(--panel) 0%, var(--panel-2) 100%);
     }
 
     .brand {
@@ -149,7 +155,7 @@
 
     h1 {
       font-family: 'Space Grotesk', sans-serif;
-      font-size: 17px;
+      font-size: 16px;
       font-weight: 700;
       margin: 0;
       letter-spacing: -0.01em;
@@ -163,7 +169,7 @@
 
     .badge {
       font-family: 'IBM Plex Mono', monospace;
-      font-size: 11px;
+      font-size: 10px;
       color: var(--muted);
       border: 1px solid var(--border);
       padding: 5px 10px;
@@ -183,7 +189,7 @@
       gap: 10px;
       border: 1px solid var(--border);
       background: var(--panel);
-      padding: 6px 12px 6px 6px;
+      padding: 4px 12px 4px 6px;
       border-radius: 100px;
     }
 
@@ -199,8 +205,8 @@
       width: 28px;
       height: 28px;
       border-radius: 50%;
-      background: var(--blue);
-      color: #060B16;
+       background: var(--blue);
+      color: #FFFFFF;
       font-family: 'Space Grotesk', sans-serif;
       font-weight: 700;
       font-size: 13px;
@@ -253,7 +259,6 @@
 
     .sidebar-section {
       padding: 12px 14px;
-      border-bottom: 1px solid var(--border);
     }
 
     .sidebar-section:last-child {
@@ -277,6 +282,7 @@
       border-bottom: 1px solid var(--border);
       flex-shrink: 0;
       gap: 12px;
+      background: linear-gradient(145deg, var(--panel), var(--panel-2));
     }
 
     .right-tabs-row {
@@ -285,8 +291,8 @@
     }
 
     .right-tab-btn {
-      background: none;
-      border: 1px solid transparent;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border);
       color: var(--muted);
       font-family: 'Inter', sans-serif;
       font-weight: 500;
@@ -301,12 +307,21 @@
       gap: 5px;
     }
 
-    .right-tab-btn:hover { background: rgba(63,203,142,0.07); color: var(--teal); }
-    .right-tab-btn.active { background: rgba(63,203,142,0.11); color: var(--teal); border-color: rgba(63,203,142,0.28); }
+    .right-tab-btn:hover {
+      background: rgba(var(--blue-rgb),0.07);
+      color: var(--blue);
+      border-color: rgba(var(--blue-rgb),0.25);
+    }
+
+    .right-tab-btn.active {
+      background: rgba(var(--blue-rgb),0.11);
+      color: var(--blue);
+      border-color: rgba(var(--blue-rgb),0.35);
+    }
 
     .ai-tab-badge {
       background: var(--teal);
-      color: #060B16;
+      color: var(--panel-2);
       font-size: 8px;
       font-weight: 800;
       letter-spacing: 0.05em;
@@ -338,7 +353,7 @@
       gap: 14px;
     }
 
-    .right-empty-icon { font-size: 44px; }
+    .right-empty-icon { opacity: 0.5; }
 
     .right-empty-state h3 {
       font-family: 'Space Grotesk', sans-serif;
@@ -385,19 +400,18 @@
       transition: all 0.3s;
     }
 
-    .status-step.active .dot { background: rgba(59,130,246,0.15); border-color: var(--blue); color: var(--blue); }
-    .status-step.done .dot   { background: rgba(63,203,142,0.15);  border-color: var(--teal);  color: var(--teal); }
+    .status-step.active .dot { background: rgba(var(--blue-rgb),0.15); border-color: var(--blue); color: var(--blue); }
+    .status-step.done .dot   { background: rgba(var(--teal-rgb),0.15);  border-color: var(--teal);  color: var(--teal); }
     .status-step.active { color: var(--blue); }
     .status-step.done   { color: var(--teal); }
 
     .status-sep { color: var(--border); }
 
-    /* ── Workflow stepper ── */
     .stepper {
       display: flex;
       align-items: center;
       gap: 0;
-      margin-bottom: 28px;
+      margin-bottom: 24px;
       padding: 14px 20px;
       background: var(--panel);
       border: 1px solid var(--border);
@@ -420,15 +434,15 @@
     }
 
     .step-dot {
-      width: 28px;
-      height: 28px;
+      width: 26px;
+      height: 26px;
       border-radius: 50%;
       background: var(--panel-2);
       border: 1px solid var(--border);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-family: 'IBM Plex Mono';
+      font-family: 'IBM Plex Mono', monospace;
       font-size: 11px;
       color: var(--muted-2);
       flex-shrink: 0;
@@ -436,7 +450,7 @@
     }
 
     .step-item.done .step-dot {
-      background: rgba(63, 203, 142, 0.15);
+      background: rgba(16, 185, 129, 0.15);
       border-color: var(--teal);
       color: var(--teal);
     }
@@ -490,20 +504,21 @@
     }
 
     .panel {
-      background: var(--panel);
+      background: linear-gradient(145deg, var(--panel), var(--panel-2));
       border: 1px solid var(--border);
-      border-radius: 10px;
+      border-radius: 12px;
       padding: 14px;
-      box-shadow: 0 1px 6px rgba(0, 0, 0, 0.2);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
     }
 
     .panel h2 {
-      font-family: 'Space Grotesk';
-      font-size: 11px;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 10px;
       text-transform: uppercase;
       letter-spacing: 0.08em;
       color: var(--muted);
       margin: 0 0 12px;
+      font-weight: 600;
     }
 
     label {
@@ -512,6 +527,8 @@
       color: var(--muted);
       margin-bottom: 5px;
       margin-top: 12px;
+      font-weight: 600;
+      letter-spacing: 0.03em;
     }
 
     label:first-of-type {
@@ -681,21 +698,25 @@
 
     .build-btn {
       width: 100%;
-      margin-top: 14px;
+      margin-top: 16px;
       background: var(--blue);
-      color: #071022;
+      color: var(--panel-2);
       border: none;
-      border-radius: 7px;
-      padding: 11px;
-      font-family: 'Space Grotesk';
+      border-radius: 8px;
+      padding: 12px;
+      font-family: 'Space Grotesk', sans-serif;
       font-weight: 700;
       font-size: 13px;
       cursor: pointer;
-      letter-spacing: 0.01em;
+      letter-spacing: 0.02em;
+      transition: all 0.15s ease;
+      box-shadow: 0 3px 10px rgba(59, 130, 246, 0.35);
     }
 
     .build-btn:hover {
       background: #5B9DFB;
+      box-shadow: 0 4px 14px rgba(59, 130, 246, 0.45);
+      transform: translateY(-1px);
     }
 
     .hint {
@@ -789,15 +810,16 @@
     }
 
     .section-title {
-      font-family: 'Space Grotesk';
-      font-size: 13px;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 12px;
       text-transform: uppercase;
       letter-spacing: 0.08em;
       color: var(--muted);
-      margin: 28px 0 12px;
+      margin: 24px 0 12px;
       display: flex;
       align-items: center;
       gap: 8px;
+      font-weight: 600;
     }
 
     .section-title::after {
@@ -833,46 +855,46 @@
     }
 
     .ai-tab-btn:hover {
-      background: rgba(63,203,142,0.06);
-      color: var(--teal);
+      background: rgba(var(--blue-rgb),0.06);
+      color: var(--blue);
     }
 
     .ai-tab-btn.active {
-      background: rgba(63,203,142,0.12);
-      color: var(--teal);
-      border: 1px solid rgba(63,203,142,0.3);
+      background: rgba(var(--blue-rgb),0.12);
+      color: var(--blue);
+      border: 1px solid rgba(var(--blue-rgb),0.35);
     }
 
     .ai-tab-btn.sell-tab.active {
-      background: rgba(255,107,91,0.10);
+      background: rgba(var(--red-rgb),0.12);
       color: var(--red);
-      border: 1px solid rgba(255,107,91,0.3);
+      border: 1px solid rgba(var(--red-rgb),0.35);
     }
 
     .ai-tab-btn.sell-tab:hover {
-      background: rgba(255,107,91,0.06);
+      background: rgba(var(--red-rgb),0.06);
       color: var(--red);
     }
 
     .ai-tab-btn.short-tab.active {
-      background: rgba(59,130,246,0.10);
+      background: rgba(var(--blue-rgb),0.12);
       color: var(--blue);
-      border: 1px solid rgba(59,130,246,0.3);
+      border: 1px solid rgba(var(--blue-rgb),0.35);
     }
 
     .ai-tab-btn.short-tab:hover {
-      background: rgba(59,130,246,0.06);
+      background: rgba(var(--blue-rgb),0.06);
       color: var(--blue);
     }
 
     .ai-tab-btn.long-tab.active {
-      background: rgba(107,168,220,0.12);
+      background: rgba(var(--blue-rgb),0.10);
       color: #93C5FD;
-      border: 1px solid rgba(107,168,220,0.3);
+      border: 1px solid rgba(var(--blue-rgb),0.3);
     }
 
     .ai-tab-btn.long-tab:hover {
-      background: rgba(107,168,220,0.06);
+      background: rgba(var(--blue-rgb),0.05);
       color: #93C5FD;
     }
 
@@ -899,9 +921,9 @@
       padding: 14px 16px;
     }
 
-    .signal-card.sell { border-color: rgba(255,107,91,0.35); }
-    .signal-card.buy  { border-color: rgba(63,203,142,0.35); }
-    .signal-card.hold { border-color: rgba(217,164,65,0.35); }
+    .signal-card.sell { border-color: rgba(var(--red-rgb),0.35); }
+    .signal-card.buy  { border-color: rgba(var(--teal-rgb),0.35); }
+    .signal-card.hold { border-color: rgba(var(--gold-rgb),0.35); }
 
     .signal-ticker {
       font-family: 'IBM Plex Mono';
@@ -922,9 +944,9 @@
       margin-bottom: 8px;
     }
 
-    .signal-label.sell { background: rgba(255,107,91,0.15); color: var(--red); }
-    .signal-label.buy  { background: rgba(63,203,142,0.15); color: var(--teal); }
-    .signal-label.hold { background: rgba(217,164,65,0.15); color: var(--gold); }
+    .signal-label.sell { background: rgba(var(--red-rgb),0.15); color: var(--red); }
+    .signal-label.buy  { background: rgba(var(--teal-rgb),0.15); color: var(--teal); }
+    .signal-label.hold { background: rgba(var(--gold-rgb),0.15); color: var(--gold); }
 
     .signal-reason {
       font-size: 12px;
@@ -946,8 +968,8 @@
       font-family: 'IBM Plex Mono';
       font-size: 11px;
       color: var(--teal);
-      background: rgba(63,203,142,0.08);
-      border: 1px solid rgba(63,203,142,0.25);
+      background: rgba(var(--teal-rgb),0.08);
+      border: 1px solid rgba(var(--teal-rgb),0.25);
       border-radius: 4px;
       padding: 2px 6px;
       margin-left: 4px;
@@ -972,10 +994,10 @@
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      background: rgba(63,203,142,0.08);
-      border: 1px solid rgba(63,203,142,0.3);
-      color: var(--teal);
-      font-family: 'Inter';
+      background: rgba(var(--blue-rgb),0.08);
+      border: 1px solid rgba(var(--blue-rgb),0.3);
+      color: var(--blue);
+      font-family: 'Inter', sans-serif;
       font-size: 12px;
       font-weight: 500;
       padding: 7px 14px;
@@ -986,7 +1008,7 @@
     }
 
     .refresh-prices-btn:hover {
-      background: rgba(63,203,142,0.14);
+      background: rgba(var(--blue-rgb),0.14);
     }
 
     .refresh-prices-btn:disabled {
@@ -1016,7 +1038,10 @@
 
     table {
       width: 100%;
-      border-collapse: collapse;
+      border-collapse: separate;
+      border-spacing: 0;
+      border-radius: 8px;
+      overflow: hidden;
     }
 
     th {
@@ -1024,9 +1049,10 @@
       font-size: 10px;
       text-transform: uppercase;
       letter-spacing: 0.06em;
-      color: var(--muted-2);
-      padding: 0 10px 8px;
-      font-weight: 500;
+      color: var(--muted);
+      padding: 8px 10px;
+      font-weight: 600;
+      border-bottom: 1px solid var(--border);
     }
 
     td {
@@ -1118,19 +1144,22 @@
 
     .mini-btn {
       background: var(--blue);
-      color: #071022;
+      color: var(--panel-2);
       border: none;
       border-radius: 8px;
       padding: 10px 16px;
-      font-family: 'Space Grotesk';
+      font-family: 'Space Grotesk', sans-serif;
       font-weight: 700;
       font-size: 12.5px;
       cursor: pointer;
       white-space: nowrap;
+      transition: all 0.15s ease;
+      box-shadow: 0 2px 6px rgba(59, 130, 246, 0.3);
     }
 
     .mini-btn:hover {
       background: #5B9DFB;
+      transform: translateY(-1px);
     }
 
     .mini-btn-outline {
@@ -1140,7 +1169,7 @@
     }
 
     .mini-btn-outline:hover {
-      background: rgba(47, 182, 140, 0.08);
+      background: rgba(16, 185, 129, 0.08);
     }
 
     .mini-btn-ghost {
@@ -1151,8 +1180,9 @@
       font-size: 11px;
       border-radius: 6px;
       cursor: pointer;
-      font-family: 'Inter';
+      font-family: 'Inter', sans-serif;
       margin-right: 4px;
+      transition: all 0.15s ease;
     }
 
     .mini-btn-ghost:hover {
@@ -1240,7 +1270,7 @@
       border-radius: 16px;
       padding: 48px 32px;
       margin: 40px auto;
-      max-width: 580px;
+      max-width: 540px;
       text-align: center;
       box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
       animation: fadeIn 0.3s ease-in-out;
@@ -1262,9 +1292,11 @@
     }
 
     .gateway-icon {
-      font-size: 48px;
+      width: 48px;
+      height: 48px;
       margin-bottom: 16px;
       display: inline-block;
+      opacity: 0.9;
     }
 
     .gateway-btn-wrap {
@@ -1283,7 +1315,7 @@
       height: 3px;
       z-index: 9999;
       display: none;
-      background: var(--panel-2);
+      background: rgba(255, 255, 255, 0.05);
       overflow: hidden;
     }
 
@@ -1344,12 +1376,31 @@
       border-color: var(--teal);
       color: var(--teal);
     }
+
+    #loaderToastIcon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--blue);
+      flex-shrink: 0;
+    }
+
+    #loaderToast.done #loaderToastIcon {
+      background: var(--teal);
+    }
+
+    #loaderToast.error #loaderToastIcon {
+      background: var(--red);
+    }
     /* Sidebar section compacted disclaimer */
     .sidebar-disclaimer {
       font-size: 10px;
       color: var(--muted-2);
       line-height: 1.5;
-      border-top: 1px dashed var(--border);
+      border-top: 1px solid var(--border);
       padding-top: 10px;
     }
 
@@ -1461,7 +1512,7 @@
     }
 
     .cmp-card {
-      background: var(--panel);
+      background: linear-gradient(145deg, var(--panel), var(--panel-2));
       border: 1px solid var(--border);
       border-radius: 10px;
       padding: 14px 16px;
@@ -1554,7 +1605,7 @@
       position: absolute;
       top: 0; left: 0;
       height: 100%;
-      background: rgba(217,164,65,0.45);
+      background: rgba(var(--gold-rgb),0.45);
       border-radius: 4px;
       transition: width 0.5s ease;
     }
@@ -1578,9 +1629,9 @@
       font-weight: 600;
     }
 
-    .cmp-badge.up   { background: rgba(63,203,142,0.12); color: var(--teal); }
-    .cmp-badge.down { background: rgba(255,107,91,0.12);  color: var(--red); }
-    .cmp-badge.flat { background: rgba(217,164,65,0.12);  color: var(--gold); }
+    .cmp-badge.up   { background: rgba(var(--teal-rgb),0.12); color: var(--teal); }
+    .cmp-badge.down { background: rgba(var(--red-rgb),0.12);  color: var(--red); }
+    .cmp-badge.flat { background: rgba(var(--gold-rgb),0.12);  color: var(--gold); }
 
     .cmp-timestamp {
       font-family: 'IBM Plex Mono', monospace;
@@ -2005,7 +2056,7 @@
   <!-- Fixed top loader bar -->
   <div id="topLoader"></div>
   <!-- Toast notification -->
-  <div id="loaderToast"><span id="loaderToastIcon">⚡</span><span id="loaderToastText">Building portfolio...</span></div>
+   <div id="loaderToast"><span id="loaderToastIcon"></span><span id="loaderToastText">Building portfolio...</span></div>
 
   <div class="app">
 
@@ -2019,8 +2070,8 @@
         <button class="sidebar-toggle-btn" id="sidebarToggleBtn" aria-label="Toggle sidebar" aria-expanded="false">
           ☰
         </button>
-        <img src="/static/logo-smart.png" alt="SmartPortfolio Logo" class="brand-logo"
-          style="width:48px; height:48px; border-radius:12px; object-fit:cover; box-shadow: 0 2px 10px rgba(0,0,0,0.5); flex-shrink:0;">
+         <img src="/static/logo.png" alt="SmartPortfolio Logo" class="brand-logo"
+          style="width:48px; height:48px; border-radius:10px; object-fit:cover; flex-shrink:0;">
         <div>
           <h1><span class="brand-word-smart">Smart</span><span class="brand-word-portfolio">Portfolio</span></h1>
           <div class="tagline">Self-Refinement Portal — allocation &amp; risk-rule modelling for the Indian equity
@@ -2044,8 +2095,7 @@
 
     <!-- AUTHENTICATION GATEWAY CARD -->
     <div id="authGateway" class="auth-gateway-card" style="display:none;">
-      <div class="gateway-icon">🔐</div>
-      <h2>Authentication Required</h2>
+      <svg class="gateway-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/><circle cx="12" cy="15" r="2"/></svg><h2>Authentication Required</h2>
       <p>Sign in with your Google account to access SmartPortfolio AI Portfolio Manager, build quantitative allocation models, fetch live market data, and generate AI insights.</p>
       <div id="gatewayGoogleBtn" class="gateway-btn-wrap"></div>
     </div>
@@ -2059,7 +2109,7 @@
         <!-- Configure Section -->
         <div class="sidebar-section">
           <div class="panel" id="tabModel" style="border:none;padding:0;box-shadow:none;background:transparent;">
-            <h2 style="margin-bottom:10px;">⚙️ Build Your Model</h2>
+             <h2 style="margin-bottom:10px;">Build Your Model</h2>
 
             <label>Investment amount</label>
             <div class="amt-input">
@@ -2101,7 +2151,7 @@
               <option value="Semi-annually">Semi-annually</option>
             </select>
 
-            <button class="build-btn" id="buildBtn">⚡ Build &amp; Analyse →</button>
+            <button class="build-btn" id="buildBtn">Build &amp; Analyse →</button>
             <div class="hint" style="margin-top:8px;">
               Fetches live prices &amp; AI trading signals in one click. 25% buffer reserved.
             </div>
@@ -2110,7 +2160,7 @@
 
         <!-- Save Section -->
         <div class="sidebar-section" id="saveSection">
-          <div class="save-panel-title">💾 Save Portfolio</div>
+           <div class="save-panel-title">Save Portfolio</div>
           <div id="saveInputRow" style="display:none;">
             <div class="save-row" style="margin-bottom:6px;">
               <input type="text" id="snapshotName" placeholder="Portfolio name…">
@@ -2150,9 +2200,9 @@
         <!-- Top nav bar: tabs + stepper status + refresh -->
         <div class="right-nav-bar">
           <div class="right-tabs-row">
-            <button class="right-tab-btn" id="rTabPortfolio" onclick="switchRightTab('panePortfolio', this)">📊 Portfolio</button>
-            <button class="right-tab-btn" id="rTabComparison" onclick="switchRightTab('paneComparison', this)">⚖️ Comparison <span class="ai-tab-badge" id="cmpTabBadge" style="display:none;">LIVE</span></button>
-            <button class="right-tab-btn" id="rTabAI" onclick="switchRightTab('paneAI', this)">✨ AI Insights <span class="ai-tab-badge" id="aiTabBadge" style="display:none;">LIVE</span></button>
+            <button class="right-tab-btn" id="rTabPortfolio" onclick="switchRightTab('panePortfolio', this)">Portfolio</button>
+            <button class="right-tab-btn" id="rTabComparison" onclick="switchRightTab('paneComparison', this)">Comparison <span class="ai-tab-badge" id="cmpTabBadge" style="display:none;">LIVE</span></button>
+            <button class="right-tab-btn" id="rTabAI" onclick="switchRightTab('paneAI', this)">AI Insights <span class="ai-tab-badge" id="aiTabBadge" style="display:none;">LIVE</span></button>
           </div>
           <div class="status-steps" id="workflowStepper">
             <div class="status-step active" id="step1Item"><div class="dot" id="step1Dot">1</div><span class="step-label">Configure</span></div>
@@ -2173,22 +2223,24 @@
 
           <!-- Empty state before build -->
           <div id="rightEmptyState" class="right-empty-state">
-            <div class="right-empty-icon">⚡</div>
+            <div class="right-empty-icon">
+              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><line x1="12" y1="7" x2="12" y2="12"/><line x1="12" y1="15" x2="12.01" y2="15"/></svg>
+            </div>
             <h3>Ready to Build</h3>
             <p>Configure your model on the left and click <b style="color:var(--blue);">Build &amp; Analyse</b> to load live prices, portfolio data and AI trading signals.</p>
           </div>
 
           <!-- Portfolio pane -->
           <div id="panePortfolio" class="right-pane">
-            <div id="priceUpdateStatus" style="display:none;font-family:'IBM Plex Mono';font-size:12px;color:var(--teal);margin-bottom:12px;padding:8px 12px;background:rgba(63,203,142,0.08);border:1px solid rgba(63,203,142,0.2);border-radius:6px;"></div>
+            <div id="priceUpdateStatus" style="display:none;font-family:'IBM Plex Mono';font-size:12px;color:var(--teal);margin-bottom:12px;padding:8px 12px;background:rgba(var(--teal-rgb),0.08);border:1px solid rgba(var(--teal-rgb),0.2);border-radius:6px;"></div>
             <div id="resultsBody"></div>
           </div>
 
           <!-- AI Insights pane -->
           <div id="paneAI" class="right-pane">
             <div id="aiLoading"
-              style="display:block; font-family:'IBM Plex Mono'; font-size: 13px; color: var(--teal); padding: 16px 18px; background: rgba(47,182,140,0.06); border: 1px solid var(--border); border-radius: 10px; margin-bottom: 16px;">
-              <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);margin-bottom:12px;">⚙️ Initializing Analysis</div>
+              style="display:block; font-family:'IBM Plex Mono'; font-size: 13px; color: var(--teal); padding: 16px 18px; background: rgba(var(--teal-rgb),0.06); border: 1px solid var(--border); border-radius: 10px; margin-bottom: 16px;">
+              <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);margin-bottom:12px;">Initializing Analysis</div>
               <div class="ai-progress-bar-wrap"><div class="ai-progress-bar" id="aiProgressBar"></div></div>
               <div class="ai-progress-steps">
                 <!-- Step 1: Market Prices -->
@@ -2220,12 +2272,12 @@
             </div>
             <div id="aiContent" style="display:none;">
               <div class="ai-tabs">
-                <button class="ai-tab-btn active" onclick="switchAITab('marketTab', this)">📊 Market Analysis</button>
-                <button class="ai-tab-btn" onclick="switchAITab('corporateTab', this)">🏢 Corporate Guidance</button>
-                <button class="ai-tab-btn" onclick="switchAITab('predictionTab', this)">🔮 AI Predictions</button>
-                <button class="ai-tab-btn sell-tab" onclick="switchAITab('sellTab', this)">🔴 Sell Signals</button>
-                <button class="ai-tab-btn short-tab" onclick="switchAITab('shortTermTab', this)">⚡ Short-Term</button>
-                <button class="ai-tab-btn long-tab" onclick="switchAITab('longTermTab', this)">📈 Long-Term</button>
+                <button class="ai-tab-btn active" onclick="switchAITab('marketTab', this)">Market Analysis</button>
+                <button class="ai-tab-btn" onclick="switchAITab('corporateTab', this)">Corporate Guidance</button>
+                <button class="ai-tab-btn" onclick="switchAITab('predictionTab', this)">AI Predictions</button>
+                <button class="ai-tab-btn sell-tab" onclick="switchAITab('sellTab', this)">Sell Signals</button>
+                <button class="ai-tab-btn short-tab" onclick="switchAITab('shortTermTab', this)">Short-Term</button>
+                <button class="ai-tab-btn long-tab" onclick="switchAITab('longTermTab', this)">Long-Term</button>
               </div>
               <div id="marketTab" class="ai-tab-content active"><div class="playbook" id="aiMarketText"></div></div>
               <div id="corporateTab" class="ai-tab-content"><div class="playbook" id="aiCorporateText"></div></div>
@@ -2251,14 +2303,14 @@
           <!-- Portfolio Comparison pane -->
           <div id="paneComparison" class="right-pane">
             <div id="cmpEmpty" class="cmp-empty">
-              ⚖️ Build a portfolio and fetch live prices to see<br>the Proposed vs Actual comparison.
+               Build a portfolio and fetch live prices to see<br>the Proposed vs Actual comparison.
             </div>
             <div id="cmpContent" style="display:none;">
               <!-- Summary cards -->
               <div class="cmp-summary-grid" id="cmpSummaryGrid"></div>
 
               <!-- Per-stock table -->
-              <div class="cmp-section-title">📋 Stock-by-Stock Breakdown</div>
+              <div class="cmp-section-title">Stock-by-Stock Breakdown</div>
               <!-- Wrapped for horizontal scroll on mobile -->
               <div class="cmp-table-wrap">
                 <table class="cmp-table" id="cmpStockTable">
@@ -2278,7 +2330,7 @@
               </div>
 
               <!-- Sector allocation -->
-              <div class="cmp-section-title">🏗 Sector Allocation: Proposed vs Actual</div>
+              <div class="cmp-section-title">Sector Allocation: Proposed vs Actual</div>
               <div id="cmpSectorBars"></div>
 
               <div class="cmp-timestamp" id="cmpTimestamp"></div>
@@ -2648,9 +2700,9 @@
         setStepState(2);
 
         // Update toast to show AI phase
-        setToastMessage('⏳', 'Fetching live prices & AI insights...');
+         setToastMessage('pending', 'Fetching live prices & AI insights...');
 
-        // Auto-trigger AI
+         // Auto-trigger AI
         triggerAI(applyAlloc);
       }
 
@@ -2702,15 +2754,18 @@
       }
 
       // ── Top loader helpers ──
-      function showTopLoader(icon, msg) {
+      function showTopLoader(status, msg) {
         document.getElementById('topLoader').classList.add('visible');
-        setToastMessage(icon || '⚡', msg || 'Building portfolio...');
-        document.getElementById('loaderToast').classList.remove('done');
+        setToastMessage(status || 'pending', msg || 'Building portfolio...');
+        document.getElementById('loaderToast').classList.remove('done', 'error');
         document.getElementById('loaderToast').classList.add('visible');
       }
 
-      function setToastMessage(icon, msg) {
-        document.getElementById('loaderToastIcon').textContent = icon;
+      function setToastMessage(status, msg) {
+        const iconEl = document.getElementById('loaderToastIcon');
+        iconEl.className = '';
+        if (status === 'done') iconEl.classList.add('done');
+        else if (status === 'error') iconEl.classList.add('error');
         document.getElementById('loaderToastText').textContent = msg;
       }
 
@@ -2719,11 +2774,12 @@
         const toast = document.getElementById('loaderToast');
         if (success) {
           toast.classList.add('done');
-          setToastMessage('✅', 'Analysis complete!');
+          setToastMessage('done', 'Analysis complete!');
           setTimeout(function() { toast.classList.remove('visible', 'done'); }, 2200);
         } else {
-          setToastMessage('⚠️', 'Something went wrong');
-          setTimeout(function() { toast.classList.remove('visible'); }, 3000);
+          toast.classList.add('error');
+          setToastMessage('error', 'Something went wrong');
+          setTimeout(function() { toast.classList.remove('visible', 'error'); }, 3000);
         }
       }
 
@@ -2777,7 +2833,7 @@
 
       // Build button handler — show top loader immediately on click
       document.getElementById('buildBtn').addEventListener('click', function() {
-        showTopLoader('⚡', 'Building portfolio...');
+         showTopLoader('pending', 'Building portfolio...');
         buildPortfolio();
       });
 
@@ -3090,7 +3146,7 @@
           const statusEl = document.getElementById('priceUpdateStatus');
           if (statusEl) {
             statusEl.style.display = 'block';
-            statusEl.innerHTML = '✅ Live prices refreshed for ' + updated + ' stocks — ' + new Date().toLocaleTimeString('en-IN');
+             statusEl.innerHTML = '<span style="color:var(--teal);">Live prices refreshed for ' + updated + ' stocks</span> — ' + new Date().toLocaleTimeString('en-IN');
             setTimeout(() => { statusEl.style.display = 'none'; }, 5000);
           }
         }
@@ -3131,7 +3187,7 @@
           renderComparison();
         } catch(e) {
           const statusEl = document.getElementById('priceUpdateStatus');
-          if (statusEl) { statusEl.style.display = 'block'; statusEl.innerHTML = '<span style="color:var(--red);">⚠️ ' + escapeHtml(e.message) + '</span>'; }
+           if (statusEl) { statusEl.style.display = 'block'; statusEl.innerHTML = '<span style="color:var(--red);">⚠ ' + escapeHtml(e.message) + '</span>'; }
         } finally {
           btn.disabled = false;
           icon.style.animation = '';
@@ -3255,13 +3311,13 @@
             '<div style="display:flex;align-items:center;gap:8px;">' +
               '<span style="font-size:10px;font-family:\'IBM Plex Mono\',monospace;color:var(--muted);width:28px;text-align:right;">' + propPct.toFixed(0) + '%</span>' +
               '<div style="flex:1;position:relative;height:8px;background:rgba(255,255,255,0.06);border-radius:4px;overflow:hidden;">' +
-                '<div style="position:absolute;top:0;left:0;height:100%;width:' + Math.min(propPct * 1.5, 100) + '%;background:rgba(217,164,65,0.4);border-radius:4px;"></div>' +
+                '<div style="position:absolute;top:0;left:0;height:100%;width:' + Math.min(propPct * 1.5, 100) + '%;background:rgba(var(--gold-rgb),0.4);border-radius:4px;"></div>' +
                 '<div style="position:absolute;top:0;left:0;height:100%;width:' + Math.min(actualPct * 1.5, 100) + '%;background:' + col + ';opacity:0.65;border-radius:4px;"></div>' +
               '</div>' +
               '<span style="font-size:10px;font-family:\'IBM Plex Mono\',monospace;color:' + col + ';width:28px;">' + actualPct.toFixed(0) + '%</span>' +
             '</div>' +
             '<div style="display:flex;gap:14px;margin-top:3px;padding-left:36px;">' +
-              '<span style="font-size:10px;color:var(--muted-2);"><span style="display:inline-block;width:8px;height:8px;background:rgba(217,164,65,0.5);border-radius:2px;margin-right:3px;"></span>Proposed ' + inr(d.proposed) + '</span>' +
+              '<span style="font-size:10px;color:var(--muted-2);"><span style="display:inline-block;width:8px;height:8px;background:rgba(var(--gold-rgb),0.5);border-radius:2px;margin-right:3px;"></span>Proposed ' + inr(d.proposed) + '</span>' +
               '<span style="font-size:10px;color:var(--muted-2);"><span style="display:inline-block;width:8px;height:8px;background:' + col + ';opacity:0.7;border-radius:2px;margin-right:3px;"></span>Actual ' + inr(d.actual) + '</span>' +
             '</div>' +
           '</div>';
@@ -3289,7 +3345,7 @@
 
         // Reveal the AI section
         setStepState(3);
-        setToastMessage('⏳', 'Fetching live prices & AI insights...');
+         setToastMessage('pending', 'Fetching live prices & AI insights...');
 
         // Reset all steps to pending
         aiLoading.style.display = 'block';
@@ -3300,13 +3356,13 @@
         setAIProgressBar(0);
         document.getElementById('aiLoadingText').textContent = '';
         const headerEl = aiLoading.querySelector('div');
-        if (headerEl) headerEl.textContent = '⚙️ Initializing Analysis';
+        if (headerEl) headerEl.textContent = 'Initializing Analysis';
 
         try {
           // ── Step 1: Fetch Live Market Prices ──
           setAIStep(1, 'active', 'Connecting to NSE/BSE via Yahoo Finance...');
           setAIProgressBar(5);
-          if (headerEl) headerEl.textContent = '📡 Fetching Live Market Data';
+          if (headerEl) headerEl.textContent = 'Fetching Live Market Data';
 
           const stocks = snapshotStocksFromDOM();
           const totalStocks = stocks.length;
@@ -3333,11 +3389,11 @@
           }
 
           setAIProgressBar(38);
-          setToastMessage('🤖', 'Running AI analysis...');
+          setToastMessage('pending', 'Running AI analysis...');
 
           // ── Step 2: AI Predictions ──
           setAIStep(2, 'active', 'Sending portfolio data to Gemini AI...');
-          if (headerEl) headerEl.textContent = '🤖 Running Gemini AI Analysis';
+          if (headerEl) headerEl.textContent = 'Running Gemini AI Analysis';
 
           // Collect live prices for the AI prompt
           const liveStocks = snapshotStocksFromDOM();
@@ -3398,18 +3454,18 @@
               } catch (e) {
                 console.error('Live price refresh for AI allocation failed:', e);
               }
-              setAIStep(2, 'done', 'AI analysis complete — combination applied ✓');
-              if (noteEl) noteEl.textContent = '✨ AI-optimized combination (Gemini) — weights reflect model conviction, not an equal split.';
+              setAIStep(2, 'done', 'AI analysis complete — combination applied');
+              if (noteEl) noteEl.textContent = 'AI-optimized combination (Gemini) — weights reflect model conviction, not an equal split.';
             } else if (noteEl) {
-              noteEl.textContent = '⚠ AI combination unavailable this run — kept default equal-weight split.';
+              noteEl.textContent = 'AI combination unavailable this run — kept default equal-weight split.';
             }
           } else if (noteEl) {
-            noteEl.textContent = 'Loaded saved combination — insights refreshed ✓';
+            noteEl.textContent = 'Loaded saved combination — insights refreshed';
           }
 
           // ── Step 3: Building signals & insights ──
           setAIStep(3, 'active', 'Rendering market analysis & trading signals...');
-          if (headerEl) headerEl.textContent = '📊 Building Insights & Signals';
+          if (headerEl) headerEl.textContent = 'Building Insights & Signals';
 
           document.getElementById('aiMarketText').innerHTML = escapeHtml(aiData.market_analysis || '').replace(/\n/g, '<br>');
           document.getElementById('aiCorporateText').innerHTML = escapeHtml(aiData.corporate_guidance || '').replace(/\n/g, '<br>');
