@@ -12,6 +12,7 @@
     href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap"
     rel="stylesheet">
   <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
 
   <style>
     :root {
@@ -32,6 +33,54 @@
       --teal-rgb: 16, 185, 129;
       --gold-rgb: 217, 164, 65;
       --red-rgb: 239, 68, 68;
+      --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.25);
+      --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.2);
+      --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.45);
+      --shadow-xl: 0 4px 20px rgba(0, 0, 0, 0.5);
+      --overlay-dark: rgba(0, 0, 0, 0.55);
+      --overlay-sidebar: rgba(0, 0, 0, 0.6);
+      --gauge-track: #1B2C4A;
+      --gauge-text: #E7EEFC;
+      --gauge-sub: #8CA3C7;
+      --danger: #D14B3F;
+      --overlay-subtle: rgba(255, 255, 255, 0.05);
+      --progress-bg: rgba(255, 255, 255, 0.07);
+      --hover-row: rgba(255, 255, 255, 0.02);
+      --tab-bg: rgba(255, 255, 255, 0.03);
+      --blue-light: #93C5FD;
+      --blue-hover: #5B9DFB;
+    }
+
+    :root.light {
+      --bg-deep: #F3F4F6;
+      --panel: #FFFFFF;
+      --panel-2: #F9FAFB;
+      --border: #E5E7EB;
+      --blue: #2563EB;
+      --blue-dim: #1D4ED8;
+      --teal: #059669;
+      --gold: #D97706;
+      --red: #DC2626;
+      --text: #111827;
+      --muted: #6B7280;
+      --muted-2: #9CA3AF;
+      --ink: #FFFFFF;
+      --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+      --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.08);
+      --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.12);
+      --shadow-xl: 0 4px 20px rgba(0, 0, 0, 0.1);
+      --overlay-dark: rgba(0, 0, 0, 0.4);
+      --overlay-sidebar: rgba(0, 0, 0, 0.5);
+      --gauge-track: #E5E7EB;
+      --gauge-text: #111827;
+      --gauge-sub: #6B7280;
+      --danger: #DC2626;
+      --overlay-subtle: rgba(0, 0, 0, 0.04);
+      --progress-bg: rgba(0, 0, 0, 0.06);
+      --hover-row: rgba(0, 0, 0, 0.02);
+      --tab-bg: rgba(0, 0, 0, 0.03);
+      --blue-light: #93C5FD;
+      --blue-hover: #1D4ED8;
     }
 
     * {
@@ -48,6 +97,7 @@
       height: 100vh;
       /* Prevent pull-to-refresh on mobile */
       overscroll-behavior: none;
+      color-scheme: dark light;
     }
 
     .app {
@@ -140,7 +190,7 @@
       font-weight: 700;
       color: #FFFFFF;
       font-size: 13px;
-      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+      text-shadow: var(--shadow-sm);
     }
 
     .brand-word-smart {
@@ -291,7 +341,7 @@
     }
 
     .right-tab-btn {
-      background: rgba(255, 255, 255, 0.03);
+      background: var(--tab-bg);
       border: 1px solid var(--border);
       color: var(--muted);
       font-family: 'Inter', sans-serif;
@@ -508,7 +558,7 @@
       border: 1px solid var(--border);
       border-radius: 12px;
       padding: 14px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+      box-shadow: var(--shadow-md);
     }
 
     .panel h2 {
@@ -714,7 +764,7 @@
     }
 
     .build-btn:hover {
-      background: #5B9DFB;
+      background: var(--blue-hover);
       box-shadow: 0 4px 14px rgba(59, 130, 246, 0.45);
       transform: translateY(-1px);
     }
@@ -889,13 +939,13 @@
 
     .ai-tab-btn.long-tab.active {
       background: rgba(var(--blue-rgb),0.10);
-      color: #93C5FD;
+      color: var(--blue-light);
       border: 1px solid rgba(var(--blue-rgb),0.3);
     }
 
     .ai-tab-btn.long-tab:hover {
       background: rgba(var(--blue-rgb),0.05);
-      color: #93C5FD;
+      color: var(--blue-light);
     }
 
     .ai-tab-content {
@@ -1089,6 +1139,30 @@
       color: var(--teal);
     }
 
+    .chart-trigger {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
+      border-radius: 4px;
+      background: rgba(var(--blue-rgb), 0.1);
+      border: 1px solid rgba(var(--blue-rgb), 0.25);
+      color: var(--blue);
+      font-size: 13px;
+      cursor: pointer;
+      margin-left: 6px;
+      transition: all 0.15s ease;
+      vertical-align: middle;
+      line-height: 1;
+    }
+
+    .chart-trigger:hover {
+      background: rgba(var(--blue-rgb), 0.2);
+      border-color: rgba(var(--blue-rgb), 0.5);
+      transform: translateY(-1px);
+    }
+
     .instrument-row td {
       color: var(--muted);
     }
@@ -1272,7 +1346,7 @@
       margin: 40px auto;
       max-width: 540px;
       text-align: center;
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
+      box-shadow: var(--shadow-lg);
       animation: fadeIn 0.3s ease-in-out;
     }
 
@@ -1315,7 +1389,7 @@
       height: 3px;
       z-index: 9999;
       display: none;
-      background: rgba(255, 255, 255, 0.05);
+      background: var(--overlay-subtle);
       overflow: hidden;
     }
 
@@ -1361,7 +1435,7 @@
       display: flex;
       align-items: center;
       gap: 8px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+      box-shadow: var(--shadow-xl);
       transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease;
       opacity: 0;
       white-space: nowrap;
@@ -1489,7 +1563,7 @@
 
     .ai-progress-bar-wrap {
       height: 3px;
-      background: rgba(255,255,255,0.07);
+      background: var(--progress-bg);
       border-radius: 4px;
       margin: 10px 0 6px;
       overflow: hidden;
@@ -1583,7 +1657,7 @@
     }
 
     .cmp-table tr:last-child td { border-bottom: none; }
-    .cmp-table tr:hover td { background: rgba(255,255,255,0.02); }
+    .cmp-table tr:hover td { background: var(--hover-row); }
 
     .cmp-drift-bar-wrap {
       display: flex;
@@ -1595,7 +1669,7 @@
     .cmp-bar-track {
       flex: 1;
       height: 6px;
-      background: rgba(255,255,255,0.07);
+      background: var(--progress-bg);
       border-radius: 4px;
       overflow: hidden;
       position: relative;
@@ -1675,7 +1749,7 @@
       display: none;
       position: fixed;
       inset: 0;
-      background: rgba(0,0,0,0.55);
+      background: var(--overlay-dark);
       z-index: 199;
       animation: fadeInOverlay 0.2s ease;
       -webkit-tap-highlight-color: transparent;
@@ -1683,6 +1757,37 @@
 
     .sidebar-overlay.active {
       display: block;
+    }
+
+    /* ── Theme toggle button ── */
+    .theme-toggle-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--panel-2);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      border-radius: 8px;
+      padding: 6px 10px;
+      font-size: 16px;
+      cursor: pointer;
+      flex-shrink: 0;
+      line-height: 1;
+      margin-left: auto;
+      transition: all 0.2s ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .theme-toggle-btn:hover {
+      border-color: var(--gold);
+      color: var(--gold);
+      background: var(--panel);
+    }
+
+    .theme-toggle-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
     }
 
     @keyframes fadeInOverlay {
@@ -1814,7 +1919,7 @@
 
       .left-sidebar.open {
         transform: translateX(0);
-        box-shadow: 4px 0 32px rgba(0,0,0,0.6);
+        box-shadow: 4px 0 32px var(--overlay-sidebar);
       }
 
       /* Right main takes full width */
@@ -2078,6 +2183,9 @@
             market</div>
         </div>
       </div>
+      <button class="theme-toggle-btn" id="themeToggleBtn" aria-label="Toggle theme" title="Switch to light theme">
+        <span class="theme-toggle-icon" id="themeToggleIcon">☀️</span>
+      </button>
       <div class="auth-widget">
         <div class="badge">EDUCATIONAL MODEL · NOT ADVICE</div>
         <div id="googleSignInBtn"></div>
@@ -2233,6 +2341,7 @@
           <!-- Portfolio pane -->
           <div id="panePortfolio" class="right-pane">
             <div id="priceUpdateStatus" style="display:none;font-family:'IBM Plex Mono';font-size:12px;color:var(--teal);margin-bottom:12px;padding:8px 12px;background:rgba(var(--teal-rgb),0.08);border:1px solid rgba(var(--teal-rgb),0.2);border-radius:6px;"></div>
+            <div id="lastUpdated" style="display:none;font-family:'IBM Plex Mono';font-size:11px;color:var(--muted-2);margin-bottom:10px;"></div>
             <div id="resultsBody"></div>
           </div>
 
@@ -2343,6 +2452,32 @@
     </div>
   </div>
 
+  <!-- Stock Chart Modal -->
+  <div id="chartModal" style="display:none; position:fixed; inset:0; background:var(--overlay-dark); z-index:3000; align-items:center; justify-content:center; padding:20px;">
+    <div style="background:var(--panel); border:1px solid var(--border); border-radius:16px; padding:24px; max-width:900px; width:100%; max-height:85vh; overflow:auto; box-shadow:var(--shadow-xl);">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+        <div>
+          <h3 id="chartTitle" style="font-family:'Space Grotesk'; margin:0; color:var(--text); font-size:18px;"></h3>
+          <div id="chartSubtitle" style="font-size:11px; color:var(--muted); margin-top:4px;"></div>
+        </div>
+        <div style="display:flex; gap:8px; align-items:center;">
+          <select id="chartPeriod" style="background:var(--panel-2); border:1px solid var(--border); color:var(--text); font-family:'Inter'; font-size:12px; padding:6px 10px; border-radius:6px; outline:none;">
+            <option value="1mo">1 Month</option>
+            <option value="3mo">3 Months</option>
+            <option value="6mo">6 Months</option>
+            <option value="1y" selected>1 Year</option>
+            <option value="2y">2 Years</option>
+          </select>
+          <button onclick="closeChartModal()" style="background:none; border:1px solid var(--border); color:var(--muted); font-size:18px; cursor:pointer; width:36px; height:36px; border-radius:8px; display:flex; align-items:center; justify-content:center; transition:all 0.2s;">✕</button>
+        </div>
+      </div>
+      <div style="position:relative; height:400px; width:100%;">
+        <canvas id="stockChart"></canvas>
+      </div>
+      <div id="chartError" style="display:none; color:var(--red); font-size:12px; margin-top:12px; font-family:'IBM Plex Mono';"></div>
+    </div>
+  </div>
+
   <script>
     // ── Mobile Sidebar Toggle ──────────────────────────────────────────────────
     (function () {
@@ -2417,6 +2552,45 @@
       });
     })();
     // ── End Mobile Sidebar Toggle ─────────────────────────────────────────────
+
+    // ── Theme Toggle ──────────────────────────────────────────────────────────
+    (function () {
+      const html = document.documentElement;
+      const toggleBtn = document.getElementById('themeToggleBtn');
+      const toggleIcon = document.getElementById('themeToggleIcon');
+      if (!toggleBtn || !toggleIcon) return;
+
+      const STORAGE_KEY = 'nivesh-theme';
+
+      function applyTheme(theme) {
+        if (theme === 'light') {
+          html.classList.add('light');
+          toggleIcon.textContent = '🌙';
+          toggleBtn.setAttribute('title', 'Switch to dark theme');
+          toggleBtn.setAttribute('aria-label', 'Switch to dark theme');
+        } else {
+          html.classList.remove('light');
+          toggleIcon.textContent = '☀️';
+          toggleBtn.setAttribute('title', 'Switch to light theme');
+          toggleBtn.setAttribute('aria-label', 'Switch to light theme');
+        }
+      }
+
+      function toggleTheme() {
+        const current = html.classList.contains('light') ? 'light' : 'dark';
+        const next = current === 'dark' ? 'light' : 'dark';
+        applyTheme(next);
+        try { localStorage.setItem(STORAGE_KEY, next); } catch (e) {}
+      }
+
+      toggleBtn.addEventListener('click', toggleTheme);
+
+      const saved = (function () {
+        try { return localStorage.getItem(STORAGE_KEY); } catch (e) { return null; }
+      })();
+      applyTheme(saved === 'light' ? 'light' : 'dark');
+    })();
+    // ── End Theme Toggle ──────────────────────────────────────────────────────
 
     try {
 
@@ -2556,11 +2730,11 @@
         const circumference = Math.PI * 60;
         const deployedLen = circumference * (deployedPct / 100);
         return '<svg width="160" height="100" viewBox="0 0 160 100">' +
-          '<path d="M 20 80 A 60 60 0 0 1 140 80" fill="none" stroke="#1B2C4A" stroke-width="14" stroke-linecap="round"/>' +
-          '<path d="M 20 80 A 60 60 0 0 1 140 80" fill="none" stroke="#3B82F6" stroke-width="14" stroke-linecap="round" ' +
+          '<path d="M 20 80 A 60 60 0 0 1 140 80" fill="none" stroke="var(--gauge-track)" stroke-width="14" stroke-linecap="round"/>' +
+          '<path d="M 20 80 A 60 60 0 0 1 140 80" fill="none" stroke="var(--blue)" stroke-width="14" stroke-linecap="round" ' +
           'stroke-dasharray="' + deployedLen + ' ' + circumference + '"/>' +
-          '<text x="80" y="72" text-anchor="middle" font-family="Space Grotesk" font-size="20" font-weight="700" fill="#E7EEFC">' + deployedPct + '%</text>' +
-          '<text x="80" y="88" text-anchor="middle" font-family="Inter" font-size="9" fill="#8CA3C7">deployed</text>' +
+          '<text x="80" y="72" text-anchor="middle" font-family="Space Grotesk" font-size="20" font-weight="700" fill="var(--gauge-text)">' + deployedPct + '%</text>' +
+          '<text x="80" y="88" text-anchor="middle" font-family="Inter" font-size="9" fill="var(--gauge-sub)">deployed</text>' +
           '</svg>';
       }
 
@@ -2625,7 +2799,7 @@
             const rowId = key + '-' + idx;
             stockRows += '' +
               '<tr>' +
-              '<td><div class="ticker-cell">' + s.t + '<span class="live-price-badge" id="livebadge-' + rowId + '" style="display:none;"><span class="live-dot"></span><span id="liveprice-' + rowId + '"></span></span></div><div class="name-cell">' + s.n + '</div></td>' +
+              '<td><div class="ticker-cell">' + s.t + '<span class="live-price-badge" id="livebadge-' + rowId + '" style="display:none;"><span class="live-dot"></span><span id="liveprice-' + rowId + '"></span></span><span class="chart-trigger" data-ticker="' + s.t + '" title="View price chart">📈</span></div><div class="name-cell">' + s.n + '</div></td>' +
               '<td style="color:var(--muted);font-size:12px;">' + sector.name + '</td>' +
               '<td style="font-family:\'IBM Plex Mono\';">' + inr(perStock) + '</td>' +
               '<td><input class="price-input" type="number" min="1" value="1000" data-amt="' + perStock + '" data-rowid="' + rowId + '" data-ticker="' + s.t + '.NS"></td>' +
@@ -2653,7 +2827,7 @@
           '</div>' +
           '<div class="split-row">' +
           '<div class="row-top"><span>Small-cap (index/ETF)</span><b>' + inr(smallAmt) + '</b></div>' +
-          '<div class="bar-track"><div class="bar-fill" style="width:' + risk.small + '%;background:#93C5FD;"></div></div>' +
+           '<div class="bar-track"><div class="bar-fill" style="width:' + risk.small + '%;background:var(--blue-light);"></div></div>' +
           '</div>' +
           '<div class="split-row">' +
           '<div class="row-top"><span>Buffer (liquid / cash)</span><b>' + inr(buffer) + '</b></div>' +
@@ -2714,11 +2888,12 @@
         switchRightTab('panePortfolio', document.getElementById('rTabPortfolio'));
         setStepState(2);
 
-        // Update toast to show AI phase
-         setToastMessage('pending', 'Fetching live prices & AI insights...');
+         // Update toast to show AI phase
+          setToastMessage('pending', 'Fetching live prices & AI insights...');
 
-         // Auto-trigger AI
-        triggerAI(applyAlloc);
+          // Auto-trigger AI
+         triggerAI(applyAlloc);
+         startAutoRefresh();
       }
 
     // Replace the static equal-weight large-cap table with Gemini's recommended_allocation.
@@ -2753,7 +2928,7 @@
           const sectorLabel = a.sector ? String(a.sector) : '';
           const reason = a.reason ? escapeHtml(String(a.reason)) : '';
           rows += '<tr>' +
-            '<td><div class="ticker-cell">' + escapeHtml(ticker) + '<span class="live-price-badge" id="livebadge-' + rowId + '" style="display:none;"><span class="live-dot"></span><span id="liveprice-' + rowId + '"></span></span></div>' +
+            '<td><div class="ticker-cell">' + escapeHtml(ticker) + '<span class="live-price-badge" id="livebadge-' + rowId + '" style="display:none;"><span class="live-dot"></span><span id="liveprice-' + rowId + '"></span></span><span class="chart-trigger" data-ticker="' + escapeHtml(ticker) + '" title="View price chart">📈</span></div>' +
             (reason ? '<div class="name-cell">' + reason + '</div>' : '') + '</td>' +
             '<td style="color:var(--muted);font-size:12px;">' + escapeHtml(sectorLabel) + '</td>' +
             '<td style="font-family:\'IBM Plex Mono\';">' + inr(amt) + ' <span style="color:var(--muted);font-size:11px;">(' + normPct.toFixed(1) + '%)</span></td>' +
@@ -3194,6 +3369,7 @@
             setTimeout(() => { statusEl.style.display = 'none'; }, 5000);
           }
         }
+        updateLastUpdatedTimestamp();
         return updated;
       }
 
@@ -3237,6 +3413,201 @@
           icon.style.animation = '';
         }
       });
+
+      // ── Auto-refresh live prices ──
+      let autoRefreshInterval = null;
+
+      function startAutoRefresh() {
+        stopAutoRefresh();
+        autoRefreshInterval = setInterval(async function() {
+          if (!window.lastBuild) { stopAutoRefresh(); return; }
+          try {
+            await fetchAndApplyLivePrices(false);
+            renderComparison();
+            updateLastUpdatedTimestamp();
+          } catch (e) {
+            console.error('Auto-refresh failed:', e);
+          }
+        }, 60000);
+      }
+
+      function stopAutoRefresh() {
+        if (autoRefreshInterval) {
+          clearInterval(autoRefreshInterval);
+          autoRefreshInterval = null;
+        }
+      }
+
+      function updateLastUpdatedTimestamp() {
+        const el = document.getElementById('lastUpdated');
+        if (el && window.lastBuild) {
+          el.style.display = 'block';
+          el.textContent = 'Live prices updated: ' + new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        }
+      }
+
+      // ── Stock Chart Modal ──
+      let chartInstance = null;
+
+      function openChartModal(ticker) {
+        const modal = document.getElementById('chartModal');
+        const title = document.getElementById('chartTitle');
+        const periodSelect = document.getElementById('chartPeriod');
+        if (!modal || !title) return;
+        title.textContent = ticker + ' — Price Chart';
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+        renderStockChart(ticker, periodSelect ? periodSelect.value : '1y');
+      }
+
+      function closeChartModal() {
+        const modal = document.getElementById('chartModal');
+        if (modal) modal.style.display = 'none';
+        document.body.style.overflow = '';
+        if (chartInstance) {
+          chartInstance.destroy();
+          chartInstance = null;
+        }
+      }
+      window.closeChartModal = closeChartModal;
+
+      async function renderStockChart(ticker, period) {
+        const ctx = document.getElementById('stockChart');
+        const errorEl = document.getElementById('chartError');
+        if (!ctx) return;
+        if (errorEl) errorEl.style.display = 'none';
+
+        if (typeof Chart === 'undefined') {
+          if (errorEl) {
+            errorEl.style.display = 'block';
+            errorEl.textContent = '⚠ Chart library failed to load. Please check your internet connection and refresh.';
+          }
+          return;
+        }
+
+        try {
+          const resp = await fetch('/api/stock-chart?ticker=' + encodeURIComponent(ticker) + '&period=' + encodeURIComponent(period), { credentials: 'include' });
+          if (resp.status === 401) {
+            if (window.showSignedOut) window.showSignedOut();
+            throw new Error('Authentication required.');
+          }
+          const json = await resp.json();
+          if (json.error) throw new Error(json.error);
+          if (!json.data || json.data.length === 0) throw new Error('No chart data available');
+
+          const labels = json.data.map(d => d.date);
+          const prices = json.data.map(d => d.close);
+
+          if (chartInstance) {
+            chartInstance.destroy();
+          }
+
+          const isPositive = prices.length >= 2 && prices[prices.length - 1] >= prices[0];
+          const lineColor = isPositive ? '#10B981' : '#EF4444';
+          const bgColor = isPositive ? 'rgba(16, 185, 129, 0.08)' : 'rgba(239, 68, 68, 0.08)';
+
+          chartInstance = new Chart(ctx, {
+            type: 'line',
+            data: {
+              labels: labels,
+              datasets: [{
+                label: ticker + ' Close Price',
+                data: prices,
+                borderColor: lineColor,
+                backgroundColor: bgColor,
+                borderWidth: 2,
+                pointRadius: 0,
+                pointHoverRadius: 4,
+                fill: true,
+                tension: 0.1
+              }]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              interaction: {
+                intersect: false,
+                mode: 'index'
+              },
+              plugins: {
+                legend: { display: false },
+                tooltip: {
+                  backgroundColor: '#1E293B',
+                  titleColor: '#E2E8F0',
+                  bodyColor: '#94A3B8',
+                  borderColor: '#475569',
+                  borderWidth: 1,
+                  padding: 10,
+                  displayColors: false,
+                  callbacks: {
+                    label: function(context) {
+                      return '₹' + context.parsed.y.toLocaleString('en-IN');
+                    }
+                  }
+                }
+              },
+              scales: {
+                x: {
+                  grid: { color: 'rgba(255,255,255,0.05)' },
+                  ticks: {
+                    color: '#64748B',
+                    maxTicksLimit: 8,
+                    font: { family: 'IBM Plex Mono', size: 10 }
+                  }
+                },
+                y: {
+                  grid: { color: 'rgba(255,255,255,0.05)' },
+                  ticks: {
+                    color: '#64748B',
+                    font: { family: 'IBM Plex Mono', size: 10 },
+                    callback: function(value) {
+                      return '₹' + value.toLocaleString('en-IN');
+                    }
+                  }
+                }
+              }
+            }
+          });
+        } catch (err) {
+          console.error('Chart fetch failed:', err);
+          if (errorEl) {
+            errorEl.style.display = 'block';
+            errorEl.textContent = '⚠ ' + err.message;
+          }
+        }
+      }
+
+      // Chart trigger click delegation
+      document.getElementById('resultsBody').addEventListener('click', function(e) {
+        const trigger = e.target.closest('.chart-trigger');
+        if (!trigger) return;
+        const ticker = trigger.dataset.ticker;
+        if (ticker) openChartModal(ticker);
+      });
+
+      // Close modal on backdrop click
+      document.getElementById('chartModal').addEventListener('click', function(e) {
+        if (e.target === this) closeChartModal();
+      });
+
+      // Close modal on Escape key
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+          const modal = document.getElementById('chartModal');
+          if (modal && modal.style.display === 'flex') closeChartModal();
+        }
+      });
+
+      // Re-render chart when period changes
+      const chartPeriodSelect = document.getElementById('chartPeriod');
+      if (chartPeriodSelect) {
+        chartPeriodSelect.addEventListener('change', function() {
+          const title = document.getElementById('chartTitle');
+          if (!title) return;
+          const ticker = title.textContent.replace(' — Price Chart', '').trim();
+          if (ticker) renderStockChart(ticker, this.value);
+        });
+      }
 
       // ── Signal card renderer ──
       function renderSignalCards(containerId, signals) {
@@ -3357,7 +3728,7 @@
             '</div>' +
             '<div style="display:flex;align-items:center;gap:8px;">' +
               '<span style="font-size:10px;font-family:\'IBM Plex Mono\',monospace;color:var(--muted);width:28px;text-align:right;">' + propPct.toFixed(0) + '%</span>' +
-              '<div style="flex:1;position:relative;height:8px;background:rgba(255,255,255,0.06);border-radius:4px;overflow:hidden;">' +
+              '<div style="flex:1;position:relative;height:8px;background:var(--progress-bg);border-radius:4px;overflow:hidden;">' +
                 '<div style="position:absolute;top:0;left:0;height:100%;width:' + Math.min(propPct * 1.5, 100) + '%;background:rgba(var(--gold-rgb),0.4);border-radius:4px;"></div>' +
                 '<div style="position:absolute;top:0;left:0;height:100%;width:' + Math.min(actualPct * 1.5, 100) + '%;background:' + col + ';opacity:0.65;border-radius:4px;"></div>' +
               '</div>' +
@@ -3577,7 +3948,7 @@
     } catch (err) {
       const panel = document.getElementById('resultsPanel');
       if (panel) {
-        panel.innerHTML = '<h2>Something went wrong</h2><div style="color:#D14B3F;font-family:\'IBM Plex Mono\';font-size:12px;white-space:pre-wrap;">' + err.message + '</div>';
+        panel.innerHTML = '<h2>Something went wrong</h2><div style="color:var(--danger);font-family:\'IBM Plex Mono\';font-size:12px;white-space:pre-wrap;">' + err.message + '</div>';
       }
       console.error(err);
     }
@@ -3625,6 +3996,7 @@
 
       function showSignedOut() {
         window.currentUserEmail = '';
+        stopAutoRefresh();
         document.getElementById('googleSignInBtn').style.display = 'block';
         document.getElementById('authUserChip').style.display = 'none';
 

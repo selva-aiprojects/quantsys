@@ -259,6 +259,35 @@ def get_market_data(tickers: str):
     return {"data": data}
 
 
+@app.get("/api/stock-chart")
+def get_stock_chart(ticker: str, period: str = "1y"):
+    import yfinance as yf
+    try:
+        normalized = ticker.strip().upper()
+        if not normalized.endswith(".NS"):
+            normalized = normalized + ".NS"
+        stock = yf.Ticker(normalized)
+        interval = "1d"
+        if period in ("1mo", "3mo"):
+            interval = "1d"
+        elif period in ("6mo", "1y"):
+            interval = "1d"
+        else:
+            interval = "1wk"
+        hist = stock.history(period=period, interval=interval)
+        if hist.empty:
+            return {"error": "No data available"}
+        data = []
+        for date, row in hist.iterrows():
+            data.append({
+                "date": date.strftime("%Y-%m-%d"),
+                "close": round(float(row["Close"]), 2)
+            })
+        return {"ticker": normalized, "period": period, "data": data}
+    except Exception as e:
+        return {"error": str(e)}
+
+
 @app.post("/api/ai-predict")
 def ai_predict(req: PortfolioRequest, user: dict = Depends(get_current_user)):
     if not client:
