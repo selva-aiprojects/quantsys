@@ -84,6 +84,26 @@ class PortfolioRequest(BaseModel):
     sector_weights: dict[str, float] = {}
     stocks: list[dict] = []  # Optional: [{"ticker": "HDFCBANK", "price": 1800, "allocated": 50000}]
 
+
+class CopilotMessage(BaseModel):
+    role: str  # "user" | "assistant"
+    content: str
+
+
+class CopilotRequest(BaseModel):
+    message: str
+    history: list[CopilotMessage] = []
+    portfolio_context: dict = {}  # holdings, metrics etc passed from frontend
+
+
+class SignalsRequest(BaseModel):
+    tickers: list[str]  # NSE tickers without .NS
+    portfolio_context: dict = {}
+
+
+class PortfolioHealthRequest(BaseModel):
+    holdings: list[dict]  # [{ticker, qty, avg_cost, current_price, sector, ...}]
+
 # Initialize Gemini Client
 api_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
 client = genai.Client(api_key=api_key) if api_key else None
@@ -401,3 +421,224 @@ Rules:
     if any(k in err_str for k in ["429", "RESOURCE_EXHAUSTED", "Quota exceeded"]):
         return {"error": "Gemini API free tier rate limit reached. Please wait 30 seconds and try again."}
     return {"error": f"AI prediction failed: {err_str}"}
+
+
+# ──────────────────────────────────────────────────────────────
+# SmartPortfolio V2 — New Endpoints
+# ──────────────────────────────────────────────────────────────
+
+def _call_gemini(prompt: str) -> str:
+    """Helper: call Gemini with fallback between models."""
+    if not client:
+        raise ValueError("GEMINI_API_KEY not set")
+    for model_name in ["gemini-2.5-flash", "gemini-2.0-flash"]:
+        try:
+            resp = client.models.generate_content(model=model_name, contents=prompt)
+            text = resp.text.strip()
+            for fence in ("```json", "```"):
+                if text.startswith(fence):
+                    text = text[len(fence):]
+            if text.endswith("```"):
+                text = text[:-3]
+            return text.strip()
+        except Exception as e:
+            err = str(e)
+            if any(k in err for k in ["429", "RESOURCE_EXHAUSTED", "404", "NOT_FOUND"]):
+                continue
+            raise
+    raise RuntimeError("All Gemini models exhausted")
+
+
+@app.post("/api/ai-copilot")
+def ai_copilot(req: CopilotRequest, user: dict = Depends(get_current_user)):
+    """Portfolio-aware AI Copilot chat endpoint."""
+    if not client:
+        return {"error": "GEMINI_API_KEY not set"}
+
+    ctx = req.portfolio_context
+    holdings_text = ""
+    if ctx.get("holdings"):
+        lines = []
+        for h in ctx["holdings"]:
+            pnl_pct = ((h.get("current_price", 0) - h.get("avg_cost", 0)) / h.get("avg_cost", 1)) * 100
+            lines.append(
+                f"  - {h.get('ticker')}: {h.get('qty')} shares @ ₹{h.get('avg_cost')}, "
+                f"LTP ₹{h.get('current_price', 'N/A')}, P&L {pnl_pct:.1f}%, "
+                f"Sector: {h.get('sector', 'N/A')}, Allocation: {h.get('allocation_pct', 0):.1f}%"
+            )
+        holdings_text = "\n".join(lines)
+
+    system_prompt = f"""You are SmartPortfolio AI Copilot — a professional, data-driven portfolio intelligence assistant for Indian equity markets.
+
+PORTFOLIO CONTEXT:
+Total Value: ₹{ctx.get('total_value', 'N/A')}
+Invested: ₹{ctx.get('invested', 'N/A')}
+Today's P&L: ₹{ctx.get('today_pnl', 'N/A')} ({ctx.get('today_pnl_pct', 'N/A')}%)
+Total P&L: ₹{ctx.get('total_pnl', 'N/A')} ({ctx.get('total_pnl_pct', 'N/A')}%)
+Portfolio Health: {ctx.get('health_score', 'N/A')}/100
+Holdings:
+{holdings_text or '  No holdings provided.'}
+
+INSTRUCTIONS:
+- Answer ONLY based on the portfolio context and your market knowledge.
+- Be concise, analytical, and professional — like a portfolio manager.
+- Use specific numbers and percentages from the portfolio context.
+- For any recommendation, use: ACCUMULATE / HOLD / WATCH / REDUCE / EXIT CANDIDATE signals only.
+- Always add: "This is analytical information, not investment advice. Data as of [today's date]."
+- Never guarantee returns or use "buy/sell" as absolute commands.
+- Format with clear structure. Keep responses under 300 words unless asked for detail.
+
+CONVERSATION HISTORY:
+{chr(10).join([f'{m.role.upper()}: {m.content}' for m in req.history[-6:]])}
+
+USER: {req.message}
+ASSISTANT:"""
+
+    try:
+        text = _call_gemini(system_prompt)
+        return {"response": text}
+    except Exception as e:
+        return {"error": str(e)}
+
+
+@app.post("/api/ai-signals")
+def ai_signals(req: SignalsRequest, user: dict = Depends(get_current_user)):
+    """Generate AI signals for a batch of holdings."""
+    if not client:
+        return {"error": "GEMINI_API_KEY not set"}
+    if not req.tickers:
+        return {"signals": []}
+
+    ctx = req.portfolio_context
+    tickers_str = ", ".join(req.tickers)
+
+    prompt = f"""You are a quantitative analyst for Indian equity markets. Analyze these NSE stocks and return structured signals.
+
+Portfolio Context:
+Total Value: ₹{ctx.get('total_value', 'N/A')}
+Holdings: {tickers_str}
+
+For each stock in the list, provide a signal based on current market conditions, fundamentals, and valuation as of August 2026.
+
+Return ONLY valid JSON array (no markdown, no extra text):
+[
+  {{
+    "ticker": "HDFCBANK",
+    "signal": "HOLD",
+    "confidence": 78,
+    "quant_score": 72,
+    "fundamental_score": 84,
+    "technical_score": 76,
+    "valuation_score": 69,
+    "momentum_score": 73,
+    "reasoning": "Brief 1-2 sentence reasoning",
+    "key_risk": "Main risk factor",
+    "3m_range_low": 1550,
+    "3m_range_high": 1700,
+    "3m_probability": 55
+  }}
+]
+
+Signal must be one of: ACCUMULATE, HOLD, WATCH, REDUCE, EXIT CANDIDATE
+confidence: 0-100
+All scores: 0-100
+All stocks in [{tickers_str}] must appear in the response."""
+
+    try:
+        text = _call_gemini(prompt)
+        signals = json.loads(text)
+        return {"signals": signals}
+    except json.JSONDecodeError:
+        return {"error": "Failed to parse AI response", "raw": text[:500]}
+    except Exception as e:
+        return {"error": str(e)}
+
+
+@app.get("/api/stock-summary")
+def stock_summary(ticker: str):
+    """Fetch stock fundamentals summary from yfinance."""
+    import yfinance as yf
+    try:
+        normalized = ticker.strip().upper()
+        if not normalized.endswith(".NS"):
+            normalized += ".NS"
+        stock = yf.Ticker(normalized)
+        info = stock.info
+        return {
+            "ticker": normalized,
+            "name": info.get("longName") or info.get("shortName", normalized),
+            "sector": info.get("sector", "N/A"),
+            "industry": info.get("industry", "N/A"),
+            "market_cap": info.get("marketCap"),
+            "pe_ratio": info.get("trailingPE"),
+            "pb_ratio": info.get("priceToBook"),
+            "roe": info.get("returnOnEquity"),
+            "debt_equity": info.get("debtToEquity"),
+            "revenue_growth": info.get("revenueGrowth"),
+            "earnings_growth": info.get("earningsGrowth"),
+            "52w_high": info.get("fiftyTwoWeekHigh"),
+            "52w_low": info.get("fiftyTwoWeekLow"),
+            "current_price": info.get("currentPrice") or info.get("regularMarketPrice"),
+            "avg_volume": info.get("averageVolume"),
+            "description": (info.get("longBusinessSummary") or "")[:400],
+            "dividend_yield": info.get("dividendYield"),
+            "beta": info.get("beta"),
+            "eps": info.get("trailingEps"),
+        }
+    except Exception as e:
+        return {"error": str(e), "ticker": ticker}
+
+
+@app.post("/api/portfolio-health")
+def portfolio_health(req: PortfolioHealthRequest):
+    """Compute portfolio health score from holdings."""
+    holdings = req.holdings
+    if not holdings:
+        return {"score": 0, "breakdown": {}}
+
+    num = len(holdings)
+    total_val = sum(h.get("current_price", 0) * h.get("qty", 0) for h in holdings)
+    if total_val == 0:
+        return {"score": 0, "breakdown": {}}
+
+    # Concentration score (lower top-5 concentration = better)
+    allocations = sorted(
+        [(h.get("current_price", 0) * h.get("qty", 0)) / total_val for h in holdings],
+        reverse=True
+    )
+    top5 = sum(allocations[:5])
+    concentration_score = max(0, 100 - int(top5 * 100))  # 0% concentration = 100 score
+
+    # Diversification score (more unique sectors = better)
+    sectors = set(h.get("sector", "Unknown") for h in holdings)
+    diversification_score = min(100, len(sectors) * 14)
+
+    # Liquidity (approximate: number of holdings > 5 = good)
+    liquidity_score = min(100, num * 8 + 20)
+
+    # Simple P&L quality score
+    gainers = sum(1 for h in holdings if (h.get("current_price", 0) - h.get("avg_cost", 0)) > 0)
+    quality_score = int((gainers / num) * 100) if num else 50
+
+    # Composite
+    overall = int(
+        concentration_score * 0.20 +
+        diversification_score * 0.25 +
+        liquidity_score * 0.15 +
+        quality_score * 0.40
+    )
+
+    return {
+        "score": min(100, overall),
+        "breakdown": {
+            "diversification": min(100, diversification_score),
+            "concentration": min(100, concentration_score),
+            "liquidity": min(100, liquidity_score),
+            "quality": min(100, quality_score),
+            "risk": max(0, 100 - concentration_score),
+            "momentum": quality_score,
+        },
+        "top5_concentration_pct": round(top5 * 100, 1),
+        "sector_count": len(sectors),
+        "holdings_count": num,
+    }
