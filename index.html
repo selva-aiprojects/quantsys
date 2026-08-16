@@ -5354,12 +5354,12 @@ End with: "This is analytical information, not investment advice. Data as of ${n
     async function fetchJson(r) {
       if (!r.ok) {
         let msg = `HTTP ${r.status}`;
+        const text = (await r.text()).trim();
         try {
-          const errData = await r.json();
+          const errData = JSON.parse(text);
           msg = errData.detail || errData.error || msg;
         } catch {
-          const txt = (await r.text()).trim();
-          if (txt) msg = txt;
+          if (text) msg = text;
         }
         throw new Error(msg);
       }
