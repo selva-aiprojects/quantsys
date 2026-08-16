@@ -389,38 +389,14 @@ Rules:
 - Output MUST be valid JSON only.
 """
 
-    models_to_try = ['gemini-2.5-flash', 'gemini-2.5-pro', 'gemini-flash-latest']
-    last_error = None
-
-    for model_name in models_to_try:
-        try:
-            response = client.models.generate_content(
-                model=model_name,
-                contents=prompt,
-            )
-            text = response.text.strip()
-            # Strip markdown code fences if present
-            if text.startswith("```json"):
-                text = text[7:]
-                if text.endswith("```"):
-                    text = text[:-3]
-            elif text.startswith("```"):
-                text = text[3:]
-                if text.endswith("```"):
-                    text = text[:-3]
-            return json.loads(text.strip())
-        except Exception as e:
-            last_error = e
-            err_str = str(e)
-            if any(k in err_str for k in ["429", "RESOURCE_EXHAUSTED", "Quota exceeded", "404", "NOT_FOUND"]):
-                continue
-            else:
-                break
-
-    err_str = str(last_error) if last_error else "Unknown error"
-    if any(k in err_str for k in ["429", "RESOURCE_EXHAUSTED", "Quota exceeded"]):
-        return {"error": "Gemini API free tier rate limit reached. Please wait 30 seconds and try again."}
-    return {"error": f"AI prediction failed: {err_str}"}
+    try:
+        text = _call_gemini(prompt)
+        return json.loads(text)
+    except Exception as e:
+        err_str = str(e)
+        if any(k in err_str for k in ["429", "RESOURCE_EXHAUSTED", "Quota exceeded"]):
+            return {"error": "AI API rate limit reached. Please wait 30 seconds and try again."}
+        return {"error": f"AI prediction failed: {err_str}"}
 
 
 # ──────────────────────────────────────────────────────────────
@@ -428,7 +404,7 @@ Rules:
 # ──────────────────────────────────────────────────────────────
 
 def _call_gemini(prompt: str) -> str:
-    """Helper: call Gemini with fallback between models."""
+    """Helper: call Gemini with fallback between models, then Grok (xAI)."""
     if not client:
         raise ValueError("GEMINI_API_KEY not set")
     for model_name in ["gemini-2.5-flash", "gemini-2.5-pro", "gemini-flash-latest"]:
@@ -446,7 +422,46 @@ def _call_gemini(prompt: str) -> str:
             if any(k in err for k in ["429", "RESOURCE_EXHAUSTED", "404", "NOT_FOUND"]):
                 continue
             raise
-    raise RuntimeError("All Gemini models exhausted")
+    # Fallback to Grok (xAI)
+    try:
+        return _call_grok(prompt)
+    except Exception as e:
+        raise RuntimeError(f"All LLM providers failed: {e}")
+
+
+def _call_grok(prompt: str) -> str:
+    """Fallback: call xAI Grok API."""
+    api_key = os.getenv("GROK_API_KEY")
+    if not api_key:
+        raise ValueError("GROK_API_KEY not set")
+
+    url = "https://api.x.ai/v1/chat/completions"
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {api_key}",
+    }
+
+    def _request(model: str) -> str:
+        payload = json.dumps({
+            "model": model,
+            "messages": [{"role": "user", "content": prompt}],
+            "temperature": 0.7,
+        }).encode()
+        req = urllib.request.Request(url, data=payload, headers=headers)
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            data = json.loads(resp.read())
+            text = data["choices"][0]["message"]["content"].strip()
+            for fence in ("```json", "```"):
+                if text.startswith(fence):
+                    text = text[len(fence):]
+            if text.endswith("```"):
+                text = text[:-3]
+            return text.strip()
+
+    try:
+        return _request("grok-3-beta")
+    except Exception:
+        return _request("grok-2-latest")
 
 
 @app.post("/api/ai-copilot")
