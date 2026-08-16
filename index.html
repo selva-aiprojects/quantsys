@@ -4362,10 +4362,7 @@
             portfolio_context: buildPortfolioContext(),
           }),
         });
-        const data = await r.json();
-        if (!r.ok) {
-          throw new Error(data.detail || data.error || `HTTP ${r.status}`);
-        }
+        const data = await fetchJson(r);
         const reply = data.response || data.error || 'Could not get a response.';
         appendChatMsg('assistant', reply);
         _chatHistory.push({ role: 'assistant', content: reply });
@@ -4409,10 +4406,7 @@
             portfolio_context: buildPortfolioContext(),
           }),
         });
-        const data = await r.json();
-        if (!r.ok) {
-          throw new Error(data.detail || data.error || `HTTP ${r.status}`);
-        }
+        const data = await fetchJson(r);
         const signals = data.signals || [];
         if (data.error) throw new Error(data.error);
 
@@ -4797,10 +4791,7 @@ End with: "This is analytical information, not investment advice. Data as of ${n
       method: 'POST', headers: { 'Content-Type': 'application/json', 'credentials': 'include' },
       body: JSON.stringify({ message: prompt, portfolio_context: buildPortfolioContext() }),
     });
-    const data = await r.json();
-    if (!r.ok) {
-      throw new Error(data.detail || data.error || `HTTP ${r.status}`);
-    }
+    const data = await fetchJson(r);
     wrap.innerHTML = `<div style="font-size:13px;color:var(--text-2);line-height:1.8;white-space:pre-wrap;">${data.response || data.error || 'No response.'}</div>`;
   } catch(e) {
     wrap.innerHTML = `<div class="empty-state"><div class="empty-icon">⚠</div><div class="empty-title">Error</div><div class="empty-desc">${e.message}</div></div>`;
@@ -5360,6 +5351,21 @@ End with: "This is analytical information, not investment advice. Data as of ${n
     // ════════════════════════════════════════════════════════
     // UTILITIES
     // ════════════════════════════════════════════════════════
+    async function fetchJson(r) {
+      if (!r.ok) {
+        let msg = `HTTP ${r.status}`;
+        try {
+          const errData = await r.json();
+          msg = errData.detail || errData.error || msg;
+        } catch {
+          const txt = (await r.text()).trim();
+          if (txt) msg = txt;
+        }
+        throw new Error(msg);
+      }
+      return r.json();
+    }
+
     function el(id) { return document.getElementById(id); }
 
     function fmtNum(n, decimals = 2) {
