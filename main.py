@@ -389,7 +389,7 @@ Rules:
 - Output MUST be valid JSON only.
 """
 
-    models_to_try = ['gemini-2.5-flash', 'gemini-2.0-flash']
+    models_to_try = ['gemini-2.5-flash', 'gemini-2.5-pro', 'gemini-flash-latest']
     last_error = None
 
     for model_name in models_to_try:
@@ -431,7 +431,7 @@ def _call_gemini(prompt: str) -> str:
     """Helper: call Gemini with fallback between models."""
     if not client:
         raise ValueError("GEMINI_API_KEY not set")
-    for model_name in ["gemini-2.5-flash", "gemini-2.0-flash"]:
+    for model_name in ["gemini-2.5-flash", "gemini-2.5-pro", "gemini-flash-latest"]:
         try:
             resp = client.models.generate_content(model=model_name, contents=prompt)
             text = resp.text.strip()
