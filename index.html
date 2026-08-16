@@ -1719,15 +1719,17 @@
       width: 52px;
       height: 52px;
       border-radius: 12px;
-      background: linear-gradient(135deg, #1D4ED8, #3B82F6);
+      overflow: hidden;
+      margin: 0 auto 16px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-family: var(--font-head);
-      font-weight: 700;
-      font-size: 22px;
-      color: #fff;
-      margin: 0 auto 16px;
+    }
+    .login-logo img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
     }
 
     .login-title {
@@ -5302,8 +5304,11 @@ End with: "This is analytical information, not investment advice. Data as of ${n
         if (Math.abs(newRate - rate) < 1e-10) break;
         rate = newRate;
         if (rate < -0.9999) rate = -0.9999;
+        if (rate > 100) { rate = 100; break; }
       }
-      return rate * 100;
+      const result = rate * 100;
+      if (!isFinite(result) || isNaN(result)) return 0;
+      return Math.max(-99, Math.min(result, 9999));
     }
 
     function computeCAGR(beginVal, endVal, days) {
@@ -5341,6 +5346,10 @@ End with: "This is analytical information, not investment advice. Data as of ${n
       if (totalVal > 0) {
         cashflows.push({ date: Date.now(), amount: totalVal });
       }
+      // Need at least one outflow and one inflow for meaningful XIRR
+      const hasOutflow = cashflows.some(c => c.amount < 0);
+      const hasInflow = cashflows.some(c => c.amount > 0);
+      if (!hasOutflow || !hasInflow) return 0;
       return computeXIRR(cashflows);
     }
 
